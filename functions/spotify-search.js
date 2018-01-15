@@ -7,7 +7,6 @@ module.exports = function(context, cb) {
 
   // your application requests authorization
   var authorizationHeader = 'Basic ' + new Buffer(clientId + ':' + clientSecret).toString('base64');
-  console.log(authorizationHeader);
   var authOptions = {
     url: 'https://accounts.spotify.com/api/token',
     headers: {
@@ -25,6 +24,8 @@ module.exports = function(context, cb) {
     cb('Supply a param of artist or album', null);
   } else {
     request.post(authOptions, function(error, response, body) {
+      console.log(response);
+      console.log(body);
       if (!error && response.statusCode === 200) {
         var token = body.access_token;
         var options = {
