@@ -38,6 +38,8 @@ module.exports = function(context, cb) {
         request.get(options, function(error, response, body) {
           cb(null, body);
         });
+      } else {
+        cb(error, null)
       }
     });
   }
