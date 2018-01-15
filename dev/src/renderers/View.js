@@ -28,6 +28,9 @@ export default class View {
   }
 
   render(release) {
+    this.changed = this.releaseId !== release.id;
+    if (!this.changed) return;
+    this.releaseId = release.id;
     let collectionRelease = this.store._.collectionReleases[release.id];
     this.renderImage(release);
     this.renderTitle(release);
@@ -106,17 +109,32 @@ export default class View {
   renderTracklist(release) {
     let { tracklist, artists, title } = release;
     this.$tracklist.innerHTML = '';
-    this.$spotify.setAttribute('href', '');
+    this.$spotify.setAttribute('src', '');
     this.$spotify.classList.add('hide');
     let artist = Object.values(artists)[0].name;
     this.renderer.store.searchSpotifyForRelease(artist, title).then(data => {
       let album = data.data.albums.items[0];
       if (album) {
         this.$spotify.setAttribute(
-          'href',
+          'src',
           `https://open.spotify.com/embed/album/${album.id}`
         );
         this.$spotify.classList.remove('hide');
+      } else {
+        // Try searching without parentheticals
+        title = title.replace(/ \([^\)]+\)$/, '');
+        this.renderer.store
+          .searchSpotifyForRelease(artist, title)
+          .then(data => {
+            let album = data.data.albums.items[0];
+            if (album) {
+              this.$spotify.setAttribute(
+                'src',
+                `https://open.spotify.com/embed/album/${album.id}`
+              );
+              this.$spotify.classList.remove('hide');
+            }
+          });
       }
     });
     tracklist.forEach(track => {

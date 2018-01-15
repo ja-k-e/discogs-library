@@ -1880,6 +1880,9 @@ var View = function () {
   }, {
     key: 'render',
     value: function render(release) {
+      this.changed = this.releaseId !== release.id;
+      if (!this.changed) return;
+      this.releaseId = release.id;
       var collectionRelease = this.store._.collectionReleases[release.id];
       this.renderImage(release);
       this.renderTitle(release);
@@ -1967,14 +1970,24 @@ var View = function () {
           title = release.title;
 
       this.$tracklist.innerHTML = '';
-      this.$spotify.setAttribute('href', '');
+      this.$spotify.setAttribute('src', '');
       this.$spotify.classList.add('hide');
       var artist = Object.values(artists)[0].name;
       this.renderer.store.searchSpotifyForRelease(artist, title).then(function (data) {
         var album = data.data.albums.items[0];
         if (album) {
-          _this2.$spotify.setAttribute('href', 'https://open.spotify.com/embed/album/' + album.id);
+          _this2.$spotify.setAttribute('src', 'https://open.spotify.com/embed/album/' + album.id);
           _this2.$spotify.classList.remove('hide');
+        } else {
+          // Try searching without parentheticals
+          title = title.replace(/ \([^\)]+\)$/, '');
+          _this2.renderer.store.searchSpotifyForRelease(artist, title).then(function (data) {
+            var album = data.data.albums.items[0];
+            if (album) {
+              _this2.$spotify.setAttribute('src', 'https://open.spotify.com/embed/album/' + album.id);
+              _this2.$spotify.classList.remove('hide');
+            }
+          });
         }
       });
       tracklist.forEach(function (track) {
