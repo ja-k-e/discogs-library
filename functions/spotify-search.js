@@ -24,8 +24,6 @@ module.exports = function(context, cb) {
     cb('Supply a param of artist or album', null);
   } else {
     request.post(authOptions, function(error, response, body) {
-      console.log(response);
-      console.log(body);
       if (!error && response.statusCode === 200) {
         var token = body.access_token;
         var options = {
