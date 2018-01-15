@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <script src="https://www.gstatic.com/firebasejs/4.8.1/firebase.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/4.8.1/firebase-firestore.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/4.8.0/firebase-auth.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/0.17.1/axios.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/fuse.js/3.2.0/fuse.min.js"></script>
+
+  <link href="https://fonts.googleapis.com/css?family=Roboto:300,500" rel="stylesheet">
+  <link rel="stylesheet" type="text/css" href="app.css">
+  <title>Discogs Library</title>
+</head>
+<body>
+  <aside>
+    <div id="details">
+      <div class="release">
+        <div class="image"></div>
+        <div class="info">
+          <div class="title"></div>
+          <div class="artist"></div>
+          <div class="meta"></div>
+          <div class="view"></div>
+        </div>
+      </div>
+      <div class="lists">
+        <div class="overflow">
+          <div class="artist-list"></div>
+          <div class="label-list"></div>
+          <div class="company-list"></div>
+        </div>
+      </div>
+    </div>
+    <div>
+      <button id="random-release" type="button" tabindex="2">
+        Random
+      </button>
+      <button id="update-release" type="button" tabindex="2">
+        Update
+      </button>
+      <button id="download-store" type="button" tabindex="2" class="is-black">
+        JSON
+      </button>
+      <button id="update-collection" type="button" tabindex="2" class="is-black is-small">
+        Update Collection
+      </button>
+      <a id="download-store-click" style="display:none"></a>
+    </div>
+  </aside>
+  <main>
+    <nav>
+      <div>
+        <input type="search" id="search" tabindex="1" placeholder="Search" title="shortcut: move through results with arrow keys" />
+      </div>
+    </nav>
+    <section>
+      <ul id="results"></ul>
+    </section>
+  </main>
+  <div id="overlay" class="hide">
+    <div class="overview">
+      <div class="image"></div>
+      <div class="info">
+        <div class="title"></div>
+        <div class="artist"></div>
+        <div class="meta"></div>
+        <div class="spotify"></div>
+        <div class="companies"></div>
+      </div>
+    </div>
+    <div class="tracklist-container">
+      <header>
+        <h1></h1>
+      </header>
+      <div class="tracklist" tabindex="1"></div>
+    </div>
+    <button type="button" class="is-small" id="close" title="shortcut: return">Close</button>
+  </div>
+  <div id="loading" class="hide">
+    <div>
+      <h1>Loading Data</h1>
+      <div class="loader"></div>
+      <ul></ul>
+    </div>
+  </div>
+  <script src="app.js"></script>
+</body>
+</html>
