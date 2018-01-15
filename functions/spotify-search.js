@@ -6,11 +6,12 @@ module.exports = function(context, cb) {
     clientSecret = context.secrets.clientSecret; // Your Spotify secret
 
   // your application requests authorization
+  var authorizationHeader = 'Basic ' + new Buffer(clientId + ':' + clientSecret).toString('base64');
+  console.log(authorizationHeader);
   var authOptions = {
     url: 'https://accounts.spotify.com/api/token',
     headers: {
-      Authorization:
-        'Basic ' + new Buffer(clientId + ':' + clientSecret).toString('base64')
+      Authorization: authorizationHeader
     },
     form: {
       grant_type: 'client_credentials'
