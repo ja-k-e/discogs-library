@@ -39,7 +39,7 @@ module.exports = function(context, cb) {
           cb(null, body);
         });
       } else {
-        cb(error, null)
+        cb(response, null)
       }
     });
   }
