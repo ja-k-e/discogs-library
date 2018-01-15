@@ -8,13 +8,13 @@ export default class View {
     this.$title = this.$container.querySelector('.title');
     this.$artist = this.$container.querySelector('.artist');
     this.$meta = this.$container.querySelector('.meta');
-    this.$spotify = this.$container.querySelector('.spotify');
     this.$close = this.$container.querySelector('#close');
     this.$close.addEventListener('click', () => {
       this.renderer.handleEscape();
     });
     this.$companies = this.$container.querySelector('.companies');
-    this.$tracklist = this.$container.querySelector('.tracklist');
+    this.$tracklist = this.$container.querySelector('.tracklist ul');
+    this.$spotify = this.$container.querySelector('.tracklist iframe');
   }
 
   hide() {
@@ -106,22 +106,25 @@ export default class View {
   renderTracklist(release) {
     let { tracklist, artists, title } = release;
     this.$tracklist.innerHTML = '';
+    this.$spotify.setAttribute('href', '');
+    this.$spotify.classList.add('hide');
     let artist = Object.values(artists)[0].name;
     this.renderer.store.searchSpotifyForRelease(artist, title).then(data => {
       let album = data.data.albums.items[0];
-      if (album)
-        this.$tracklist.innerHTML = `
-          <iframe src="https://open.spotify.com/embed/album/${album.id}"
-            width="300" height="380" frameborder="0" allowtransparency="true"></iframe>`;
-      let $ul = document.createElement('ul');
-      this.$tracklist.appendChild($ul);
-      tracklist.forEach(track => {
-        let $li = document.createElement('li'),
-          title = track.title.replace(/ ([^ ]+)$/, '&nbsp;$1');
-        $li.classList.add(track.type);
-        $li.innerHTML = `<span>${track.position}</span><span>${title}</span>`;
-        $ul.appendChild($li);
-      });
+      if (album) {
+        this.$spotify.setAttribute(
+          'href',
+          `https://open.spotify.com/embed/album/${album.id}`
+        );
+        this.$spotify.classList.remove('hide');
+      }
+    });
+    tracklist.forEach(track => {
+      let $li = document.createElement('li'),
+        title = track.title.replace(/ ([^ ]+)$/, '&nbsp;$1');
+      $li.classList.add(track.type);
+      $li.innerHTML = `<span>${track.position}</span><span>${title}</span>`;
+      this.$tracklist.appendChild($li);
     });
   }
 

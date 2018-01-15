@@ -12,10 +12,61 @@ You will need:
 
 - A free [Firebase](https://firebase.google.com) account with a Firestore database
 - A free [Webtask](https://webtask.io/) account with the Github integration enabled
-- A free [Discogs](https://www.discogs.com) account and user token
-- A free [Spotify](https://beta.developer.spotify.com/dashboard/applications) developer account/app and a clientId/clientSecret
+- A free [Discogs](https://www.discogs.com) account and `userToken`
+- A free [Spotify](https://beta.developer.spotify.com/dashboard/applications) developer account/app, `clientId` and `clientSecret`.
 
-# Firebase
+# Data Structure
+
+- `user`: Your Discogs User information
+- `username/folders`: Your Discogs folder information (id, name)
+- `username/releases`: Limited Release information for your Discogs collection (id, folderId, added)
+- `releases`: Full Discogs Release data, by `releaseId`.
+
+## You
+When authorized through Firebase, you have the ability to maintain your data. You authorize using Google by visiting `YOURAPP.com?authorize=true`
+
+On first load or whenever you want to update your Collection, you will hit "Update Collection" which will go through the following flow:
+
+  1. Calls the Webtask `discogs-collection` function, which returns your User, Folders, and the limited Release data
+  1. Overwrites `user`, `username/*` in your Firestore database (leaves `releases` untouched)
+  1. Checks to see if it has `releases` data for each Release in your Collection.
+    - If it does
+      1. It reloads the app
+    - If it doesn't
+      1. It calls the Webtask `discogs-releases` function, which returns Releases for arrays of `releaseIds`. 
+        - This is throttled 60 per minute because of Discogs API limitations.
+        - If you need less than 60 Releases it will load all in one request,
+        - If you need more than 60 Releases it runs for 10 Releases every 15 seconds
+      1. It takes the Releases returned by Webtask and writes to Firestore.
+      1. It clears your `localStorage`
+      1. Upon completion, it reloads the app
+
+On app load, it will check to see if it has the data it needs in `localStorage`.
+
+  1. If data is saved to `localStorage`, it loads your data from there.
+  1. If data is not saved to `localStorage`, it loads your data from Firestore then saves it to `localStorage`.
+
+You can update a single Release at any time (new Releases might change often on Discogs).
+
+  1. Hit "Update" button for the current Release in app
+  1. It calls the Webtask `discogs-releases` function for the single `releaseId`
+  1. It takes that Release from Webtask and writes it to Firestore
+  1. It clears your `localStorage`, next page load will come from Firestore.
+  1. It updates your app view.
+
+
+## Visitors
+All visitors have zero access to Webtask or Firebase. They simply load the latest JSON file of your Collection from `dev/data`. You can export your `localStorage` to JSON so that any other user can view your Collection.
+
+  1. Hit "JSON" button in app
+  1. Move the file to `dev/data/`
+  1. Run `gulp publish`
+  1. Commit your changes and push to Github.
+
+
+# Setup
+
+## Firebase
 
 - Create a new Firebase web app and [set Firestore as your database](https://firebase.google.com/docs/firestore/quickstart)
 - [Enable Google Sign-in](https://firebase.google.com/docs/auth/web/google-signin) in your app's Authentication settings
@@ -33,65 +84,51 @@ service cloud.firestore {
 }
 ```
 
-- Update `dev/src/App.js` `MASTER_EMAIL` to be whatever email address you will sign in with.
+- Update `dev/src/App.js` `MASTER_EMAIL` to be whatever email address you will sign in with. This will allow your user to manage the app.
 
-# Discogs
+## Discogs
 
 - Visit [discogs.com/settings/developers](https://www.discogs.com/settings/developers) and get a personal access token.
-- Update `USER_TOKEN` in `functions/discogs-collection.js` and `functions/discogs-release.js`.
-- Update `USER_USERNAME` with your Discogs username in `functions/discogs-collection.js`.
 - Update `DISCOGS_USERNAME` with your Discogs username in `dev/src/components/store.js`.
-- Commit and push these changes to your Github repository.
 
-# Webtask
+## Webtask
 
 - Set up [Github integration](https://webtask.io/docs/editor/github) so that your server functions can be read from the repository.
 - Create a new task called `discogs-collection`
   - Sync it with the Github repo's `functions/discogs-collection.js`.
   - Add your Discogs `userToken` and `userUsername` to the [Webtask secrets](https://webtask.io/docs/editor/secrets)
   - Add the `disconnect` npm module to `discogs-collection` via `Settings > NPM Modules`
+  - Set `dev/src/components/Webtask.js` `discogsCollection` to the url displayed at the bottom of this Webtask
 - Create a new task called `discogs-releases`
   - Sync it with the Github repo's `functions/discogs-releases.js`.
   - Add your Discogs `userToken` to the [Webtask secrets](https://webtask.io/docs/editor/secrets)
   - Add the `disconnect` npm module to `discogs-releases` via `Settings > NPM Modules`
+  - Set `dev/src/components/Webtask.js` `discogsReleases` to the url displayed at the bottom of your Webtask `discogs-releases`
 - Create a new task called `spotify-search`
   - Sync it with the Github repo's `functions/spotify-search.js`.
   - Add your Spotify `clientId` and `clientSecret` to the [Webtask secrets](https://webtask.io/docs/editor/secrets)
   - Add the `http` npm module to `spotify-search` via `Settings > NPM Modules`
-- Open `dev/src/components/Webtask.js`
-- Set `discogsCollection` to the url displayed at the bottom of your Webtask `discogs-collection`
-- Set `discogsReleases` to the url displayed at the bottom of your Webtask `discogs-releases`
-- Set `spotifySearch` to the url displayed at the bottom of your Webtask `spotify-search`
+  - Set `dev/src/components/Webtask.js` `spotifySearch` to the url displayed at the bottom of your Webtask `spotify-search`
 
 
 # Authorized Access
 - To authorize yourself, visit `https://[APP_URL]?authorize=true` which will go through the Google authorization flow.
 - Any subsequent visit does not need the `authorize` param until you are signed on.
-- Any user that authorizes using Google will still have the limited experience using the JSON file.
+- Any user that is not you and authorizes using Google will still have the limited experience using the JSON file.
 
-# Guest Access
-- The public view will show your Collection without having any Authentication/database actions. This keeps your Firestore activity to a minimum.
-- All you need to do is sign into the app as your master user and download the JSON dump. Move this JSON file into `dev/data` then run `gulp publish` and deploy.
-- Visiting users will read from the JSON file, which will be as up to date as you would like to keep it.
+# Public Access
+The public view will show your Collection via the JSON file without having any Authentication/database actions. This keeps your Firestore activity to a minimum.
 
 # Starting the App
-
 - Run `gulp` from the app root
-- Open [localhost:8000](http://localhost:8000)
+- Open [localhost:8000?authenticate=true](http://localhost:8000?authenticate=true)
 - Authenticate with your Google account
-- Click 'Update Collection'
-- This will call the Webtask `discogs-collection` which loads your entire Collection, writes it to your Firestore database, then reloads the page.
-- On page load, it will detect that it is missing all the full Release data for your Collection and call the Webtask `discogs-releases` which loads release information up to 60 per minute (Discogs API limit), and writes it to your Firestore database, then finally reloads the page.
-  - Leave your browser open and it will pull in 10 releases every 15 seconds
-  - If your collection is less than 60, it will do it all in a single call.
-  - Every time it receives data, it will add it to your Firestore database
-- After this initial load, the only time you need to call Webtask (Discogs) is if you want to update your Collection data. This will reload your entire Collection from Discogs, and pull in any new Releases.
-- This data gets stored in your browser's `localStorage`, so you dont have to worry about hitting limits on Firestore.
+- Click 'Update Collection' and leave your browser open while it goes through the flow described above in [Data Structure](#data-structure).
 
 # Navigating the App
 - Up and down arrows will navigate through the search results
-- Enter will open the full view of whatever the active Release is
-- Escape or Enter will close the full view
+- `return` will open the full view of whatever the active Release is
+- `escape` or `return` will close the full view
 
 # Deployment
 - `gulp publish` will update the `/docs` directory (gh-pages convention), which you can host wherever you want.

@@ -1856,13 +1856,13 @@ var View = function () {
     this.$title = this.$container.querySelector('.title');
     this.$artist = this.$container.querySelector('.artist');
     this.$meta = this.$container.querySelector('.meta');
-    this.$spotify = this.$container.querySelector('.spotify');
     this.$close = this.$container.querySelector('#close');
     this.$close.addEventListener('click', function () {
       _this.renderer.handleEscape();
     });
     this.$companies = this.$container.querySelector('.companies');
-    this.$tracklist = this.$container.querySelector('.tracklist');
+    this.$tracklist = this.$container.querySelector('.tracklist ul');
+    this.$spotify = this.$container.querySelector('.tracklist iframe');
   }
 
   _createClass(View, [{
@@ -1967,19 +1967,22 @@ var View = function () {
           title = release.title;
 
       this.$tracklist.innerHTML = '';
+      this.$spotify.setAttribute('href', '');
+      this.$spotify.classList.add('hide');
       var artist = Object.values(artists)[0].name;
       this.renderer.store.searchSpotifyForRelease(artist, title).then(function (data) {
         var album = data.data.albums.items[0];
-        if (album) _this2.$tracklist.innerHTML = '\n          <iframe src="https://open.spotify.com/embed/album/' + album.id + '"\n            width="300" height="380" frameborder="0" allowtransparency="true"></iframe>';
-        var $ul = document.createElement('ul');
-        _this2.$tracklist.appendChild($ul);
-        tracklist.forEach(function (track) {
-          var $li = document.createElement('li'),
-              title = track.title.replace(/ ([^ ]+)$/, '&nbsp;$1');
-          $li.classList.add(track.type);
-          $li.innerHTML = '<span>' + track.position + '</span><span>' + title + '</span>';
-          $ul.appendChild($li);
-        });
+        if (album) {
+          _this2.$spotify.setAttribute('href', 'https://open.spotify.com/embed/album/' + album.id);
+          _this2.$spotify.classList.remove('hide');
+        }
+      });
+      tracklist.forEach(function (track) {
+        var $li = document.createElement('li'),
+            title = track.title.replace(/ ([^ ]+)$/, '&nbsp;$1');
+        $li.classList.add(track.type);
+        $li.innerHTML = '<span>' + track.position + '</span><span>' + title + '</span>';
+        _this2.$tracklist.appendChild($li);
       });
     }
   }, {

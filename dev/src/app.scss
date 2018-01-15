@@ -419,6 +419,11 @@ main {
         height: 300px;
         display: block;
         background: black;
+        transition: height 250ms ease-in-out;
+        &.hide {
+          display: none;
+          height: 0;
+        }
       }
       &:focus {
         outline: none;
