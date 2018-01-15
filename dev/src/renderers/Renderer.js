@@ -34,7 +34,7 @@ export default class Renderer {
         }
       });
       this.$updateRelease.addEventListener('click', () => {
-        let id = this.resultIds[this.currResultIdx];
+        let id = this.currResultId;
         if (id)
           this.store.updateRelease(id).then(() => {
             this.release.render(id);

@@ -3,7 +3,6 @@ export default class Release {
     this.renderer = renderer;
     this.store = renderer.store;
     this.$container = document.querySelector('#details');
-    this.$container.classList.add('hide');
     this.$ul = this.$container.querySelector('ul');
     this.$image = this.$container.querySelector('.image');
     this.$title = this.$container.querySelector('.title');

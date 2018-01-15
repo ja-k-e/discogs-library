@@ -13,13 +13,82 @@ export default class Store {
     this.firestore = new Firestore(database);
     this.webtask = new Webtask();
     this.renderer = new Renderer(this);
+    // this._clearStore();
   }
 
-  searchSpotifyForRelease(artist, album) {
+  searchSpotify(release) {
     return new Promise((resolve, reject) => {
+      this.searchSpotifyForRelease(release).then(id => {
+        this.firestore.updateSpotifyId(release.id, id).then(() => {
+          resolve(id);
+        });
+      });
+    });
+  }
+
+  // One-off update
+  updateSpotifyId(releaseId, spotifyId) {
+    return new Promise((resolve, reject) => {
+      this.firestore
+        .updateSpotifyId(releaseId, spotifyId)
+        .then(() => {
+          this._.spotify[releaseId] = { id: spotifyId };
+          this.saveState();
+          resolve();
+        })
+        .catch(reject);
+    });
+  }
+
+  searchSpotifyForRelease({ artists, title, id }) {
+    // We try a few different things here.
+    // Then we try it without extra parens at the end of the title
+    artists = Object.values(artists).map(artist => artist.name);
+    // Do the OR combination for artist if we can
+    let artist = artists[1] ? `${artists[0]}OR${artists[1]}` : artists[0];
+    return new Promise((resolve, reject) => {
+      // If we saved it, return it.
+      if (this._.spotify[id]) {
+        resolve(this._.spotify[id].id);
+        return;
+      } else if (this._.spotify[id] === '') {
+        resolve('');
+        return;
+      }
+
       this.webtask
-        .searchSpotify(artist, album)
-        .then(resolve)
+        .searchSpotify(artist, title)
+        .then(response => {
+          let album = response.data.albums.items[0];
+          if (album) {
+            resolve(album.id);
+          } else {
+            // Try searching without ending parens
+            let title2 = title.replace(/ \([^\)]+\)$/, '');
+            this.webtask
+              .searchSpotify(artist, title2)
+              .then(response => {
+                let album = response.data.albums.items[0];
+                if (album) {
+                  resolve(album.id);
+                } else {
+                  // Try searching just the title
+                  this.webtask
+                    .searchSpotify(null, title)
+                    .then(response => {
+                      let album = response.data.albums.items[0];
+                      if (album) {
+                        resolve(album.id);
+                      } else {
+                        resolve('');
+                      }
+                    })
+                    .catch(reject);
+                }
+              })
+              .catch(reject);
+          }
+        })
         .catch(reject);
     });
   }
@@ -85,10 +154,11 @@ export default class Store {
     });
   }
 
-  setData({ user, collection, releases }) {
+  setData({ user, collection, releases, spotify }) {
     this._ = {
       user,
       releases,
+      spotify,
       collectionFolders: collection.folders,
       collectionReleases: collection.releases,
       missingReleaseIds: []
@@ -96,7 +166,22 @@ export default class Store {
     Object.keys(this._.collectionReleases).forEach(releaseId => {
       if (!this._.releases[releaseId]) this._.missingReleaseIds.push(releaseId);
     });
-    this._setStore({ user, collection, releases });
+    this._setStore({ user, collection, releases, spotify });
+  }
+
+  saveState() {
+    let {
+      user,
+      collectionReleases,
+      collectionFolders,
+      releases,
+      spotify
+    } = this._;
+    let collection = {
+      folders: collectionFolders,
+      releases: collectionReleases
+    };
+    this._setStore({ user, collection, releases, spotify });
   }
 
   loadMissingReleases() {
@@ -134,14 +219,18 @@ export default class Store {
       this.loadReleases([[id]], 1, 0)
         .then(response => {
           this._.releases[id] = response.data[id];
-          let { releases, user } = this._,
-            collection = {
-              releases: this._.collectionReleases,
-              folders: this._.collectionFolders
-            };
-          this._setStore({ user, collection, releases });
-          this.renderer.loading.disable();
-          resolve();
+          if (!this._.spotify[id])
+            this.searchSpotify(this._.releases[id]).then(spotifyId => {
+              this._.spotify[id] = { id: spotifyId };
+              this.saveState();
+              this.renderer.loading.disable();
+              resolve();
+            });
+          else {
+            this.saveState();
+            this.renderer.loading.disable();
+            resolve();
+          }
         })
         .catch(reject);
     });
@@ -218,6 +307,7 @@ export default class Store {
   randomRelease() {
     let ids = Object.keys(this._.releases),
       id = ids[Math.floor(Math.random() * ids.length)];
+    this.renderer.currResultId = id;
     this.renderer.release.render(id);
   }
 

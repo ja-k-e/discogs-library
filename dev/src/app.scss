@@ -352,9 +352,6 @@ main {
     z-index: 9;
     width: 80px;
   }
-  &.hide {
-    display: none;
-  }
   a {
     text-decoration: none;
     color: $primary;
@@ -404,6 +401,18 @@ main {
         padding-top: $pad * 0.5;
         font-size: 0.75rem;
       }
+
+      .update-spotify {
+        display: flex;
+        margin-top: $pad;
+        input {
+          flex: 2;
+        }
+        button {
+          flex: 1;
+          margin-left: $pad * 0.5;
+        }
+      }
     }
   }
   .tracklist-container {
@@ -419,11 +428,6 @@ main {
         height: 78px;
         display: block;
         background: black;
-        transition: height 250ms ease-in-out;
-        &.hide {
-          display: none;
-          height: 0;
-        }
       }
       &:focus {
         outline: none;
@@ -489,6 +493,10 @@ main {
   }
 }
 
+.hide {
+  display: none !important;
+}
+
 #loading {
   position: fixed;
   top: 0;
@@ -496,16 +504,11 @@ main {
   bottom: 0;
   left: 0;
   background: white;
-  &.hide {
-    display: none;
-  }
   > div {
     width: 95%;
-    margin: 2rem auto;
     max-width: 600px;
-    max-height: 400px;
-    left: calc(50% - 300px);
-    top: calc(50% - 300px);
+    margin: 2rem auto;
+    // max-height: 400px;
     padding: $pad;
     box-sizing: border-box;
     display: flex;

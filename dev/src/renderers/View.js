@@ -9,12 +9,14 @@ export default class View {
     this.$artist = this.$container.querySelector('.artist');
     this.$meta = this.$container.querySelector('.meta');
     this.$close = this.$container.querySelector('#close');
+    this.$updateSpotify = this.$container.querySelector('.update-spotify');
     this.$close.addEventListener('click', () => {
       this.renderer.handleEscape();
     });
     this.$companies = this.$container.querySelector('.companies');
     this.$tracklist = this.$container.querySelector('.tracklist ul');
-    this.$spotify = this.$container.querySelector('.tracklist iframe');
+    this.$spotify = this.$container.querySelector('.tracklist .spotify-frame');
+    if (this.store.app.masterUser) this.initializeSpotifyForm();
   }
 
   hide() {
@@ -28,32 +30,35 @@ export default class View {
   }
 
   render(release) {
-    this.changed = this.releaseId !== release.id;
-    if (!this.changed) return;
     this.releaseId = release.id;
-    let collectionRelease = this.store._.collectionReleases[release.id];
-    this.renderImage(release);
-    this.renderTitle(release);
-    this.renderArtist(release);
-    this.renderMeta(release, collectionRelease);
-    this.renderCompanies(release);
-    this.renderTracklist(release);
+    this.release = release;
+    this.collectionRelease = this.store._.collectionReleases[release.id];
+    this.renderImage();
+    this.renderTitle();
+    this.renderArtist();
+    this.renderMeta();
+    this.renderCompanies();
+    this.renderTracklist();
+    if (this.store.app.masterUser) this.renderSpotifyForm();
   }
 
-  renderImage({ images }) {
+  renderImage() {
+    let { images } = this.release;
     let image = images[0];
     if (image) this.$image.style.backgroundImage = `url('${image.uri}')`;
     else this.$image.style.backgroundImage = `none`;
   }
 
-  renderTitle({ title, id }) {
+  renderTitle() {
+    let { title, id } = this.release;
     this.$title.innerHTML = `<a href="https://www.discogs.com/release/${id}" target="blank">
       ${title.replace(/ ([^ ]+)$/, '&nbsp;$1')}
     </a>`;
     this.$h1.innerHTML = title;
   }
 
-  renderArtist({ artists, year }) {
+  renderArtist() {
+    let { artists, year } = this.release;
     year = year > 1900 ? `,&nbsp;${year}` : '';
     this.$artist.innerHTML =
       Object.values(artists)
@@ -64,7 +69,9 @@ export default class View {
         .join(', ') + year;
   }
 
-  renderMeta({ formats, labels }, { added, folderId }) {
+  renderMeta() {
+    let { formats, labels } = this.release,
+      { added, folderId } = this.collectionRelease;
     this.$meta.innerHTML = '';
     labels = Object.values(labels)
       .map(
@@ -92,7 +99,8 @@ export default class View {
     this.$meta.innerHTML += `<p class="folder"><strong>${folder}</strong> ${date}</p>`;
   }
 
-  renderCompanies({ companies }) {
+  renderCompanies() {
+    let { companies } = this.release;
     this.$companies.innerHTML = '';
     companies = Object.values(companies)
       .map(
@@ -106,37 +114,41 @@ export default class View {
     this.$companies.innerHTML += `<p class="label">${companies}</p>`;
   }
 
-  renderTracklist(release) {
-    let { tracklist, artists, title } = release;
-    this.$tracklist.innerHTML = '';
-    this.$spotify.setAttribute('src', '');
-    this.$spotify.classList.add('hide');
-    let artist = Object.values(artists)[0].name;
-    this.renderer.store.searchSpotifyForRelease(artist, title).then(data => {
-      let album = data.data.albums.items[0];
-      if (album) {
-        this.$spotify.setAttribute(
-          'src',
-          `https://open.spotify.com/embed/album/${album.id}`
-        );
-        this.$spotify.classList.remove('hide');
-      } else {
-        // Try searching without parentheticals
-        title = title.replace(/ \([^\)]+\)$/, '');
-        this.renderer.store
-          .searchSpotifyForRelease(artist, title)
-          .then(data => {
-            let album = data.data.albums.items[0];
-            if (album) {
-              this.$spotify.setAttribute(
-                'src',
-                `https://open.spotify.com/embed/album/${album.id}`
-              );
-              this.$spotify.classList.remove('hide');
-            }
-          });
-      }
+  initializeSpotifyForm() {
+    this.$updateSpotify.classList.remove('hide');
+    this.$spotifyId = this.$updateSpotify.querySelector('input');
+    this.$spotifySubmit = this.$updateSpotify.querySelector('button');
+    this.$spotifySubmit.addEventListener('click', () => {
+      this.renderer.loading.enable();
+      this.renderer.loading.message('Updating Spotify Id');
+      this.store
+        .updateSpotifyId(this.releaseId, this.$spotifyId.value)
+        .then(() => {
+          this.renderer.loading.disable();
+          this.renderTracklist();
+        });
     });
+  }
+
+  renderSpotifyForm() {
+    let spotify = this.store._.spotify[this.releaseId];
+    if (spotify !== undefined) this.$spotifyId.value = spotify.id;
+    else this.$spotifyId.value = '';
+  }
+
+  renderTracklist() {
+    let release = this.store._.releases[this.releaseId];
+    let { tracklist, artists, title } = release;
+    let releaseId = release.id;
+    this.$tracklist.innerHTML = '';
+    this.$spotify.innerHTML = '';
+    let spotify = this.store._.spotify && this.store._.spotify[release.id];
+    if (spotify && spotify.id !== '') {
+      this.$spotify.innerHTML = `<iframe src="https://open.spotify.com/embed/album/${spotify.id}"
+          width="300" height="380" frameborder="0" allowtransparency="true"></iframe>`;
+      this.$spotify.classList.remove('hide');
+    }
+
     tracklist.forEach(track => {
       let $li = document.createElement('li'),
         title = track.title.replace(/ ([^ ]+)$/, '&nbsp;$1');

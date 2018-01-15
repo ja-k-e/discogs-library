@@ -9,7 +9,7 @@ export default class Webtask {
 
   searchSpotify(artist, album) {
     return new Promise((resolve, reject) => {
-      let query = `${album} artist:${artist}`;
+      let query = artist ? `${album} artist:${artist}` : album;
       axios
         .get(spotifySearch, { params: { album: query } })
         .then(data => {

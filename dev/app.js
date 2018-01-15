@@ -133,7 +133,7 @@ var Webtask = function () {
     key: 'searchSpotify',
     value: function searchSpotify(artist, album) {
       return new Promise(function (resolve, reject) {
-        var query = album + ' artist:' + artist;
+        var query = artist ? album + ' artist:' + artist : album;
         axios.get(spotifySearch, { params: { album: query } }).then(function (data) {
           resolve(data);
         }).catch(reject);
@@ -419,7 +419,7 @@ var _Firestore = __webpack_require__(7);
 
 var _Firestore2 = _interopRequireDefault(_Firestore);
 
-var _Renderer = __webpack_require__(13);
+var _Renderer = __webpack_require__(14);
 
 var _Renderer2 = _interopRequireDefault(_Renderer);
 
@@ -444,15 +444,89 @@ var Store = function () {
     this.firestore = new _Firestore2.default(database);
     this.webtask = new _Webtask2.default();
     this.renderer = new _Renderer2.default(this);
+    // this._clearStore();
   }
 
   _createClass(Store, [{
-    key: 'searchSpotifyForRelease',
-    value: function searchSpotifyForRelease(artist, album) {
+    key: 'searchSpotify',
+    value: function searchSpotify(release) {
       var _this = this;
 
       return new Promise(function (resolve, reject) {
-        _this.webtask.searchSpotify(artist, album).then(resolve).catch(reject);
+        _this.searchSpotifyForRelease(release).then(function (id) {
+          _this.firestore.updateSpotifyId(release.id, id).then(function () {
+            resolve(id);
+          });
+        });
+      });
+    }
+
+    // One-off update
+
+  }, {
+    key: 'updateSpotifyId',
+    value: function updateSpotifyId(releaseId, spotifyId) {
+      var _this2 = this;
+
+      return new Promise(function (resolve, reject) {
+        _this2.firestore.updateSpotifyId(releaseId, spotifyId).then(function () {
+          _this2._.spotify[releaseId] = { id: spotifyId };
+          _this2.saveState();
+          resolve();
+        }).catch(reject);
+      });
+    }
+  }, {
+    key: 'searchSpotifyForRelease',
+    value: function searchSpotifyForRelease(_ref) {
+      var _this3 = this;
+
+      var artists = _ref.artists,
+          title = _ref.title,
+          id = _ref.id;
+
+      // We try a few different things here.
+      // Then we try it without extra parens at the end of the title
+      artists = Object.values(artists).map(function (artist) {
+        return artist.name;
+      });
+      // Do the OR combination for artist if we can
+      var artist = artists[1] ? artists[0] + 'OR' + artists[1] : artists[0];
+      return new Promise(function (resolve, reject) {
+        // If we saved it, return it.
+        if (_this3._.spotify[id]) {
+          resolve(_this3._.spotify[id].id);
+          return;
+        } else if (_this3._.spotify[id] === '') {
+          resolve('');
+          return;
+        }
+
+        _this3.webtask.searchSpotify(artist, title).then(function (response) {
+          var album = response.data.albums.items[0];
+          if (album) {
+            resolve(album.id);
+          } else {
+            // Try searching without ending parens
+            var title2 = title.replace(/ \([^\)]+\)$/, '');
+            _this3.webtask.searchSpotify(artist, title2).then(function (response) {
+              var album = response.data.albums.items[0];
+              if (album) {
+                resolve(album.id);
+              } else {
+                // Try searching just the title
+                _this3.webtask.searchSpotify(null, title).then(function (response) {
+                  var album = response.data.albums.items[0];
+                  if (album) {
+                    resolve(album.id);
+                  } else {
+                    resolve('');
+                  }
+                }).catch(reject);
+              }
+            }).catch(reject);
+          }
+        }).catch(reject);
       });
     }
   }, {
@@ -469,14 +543,14 @@ var Store = function () {
   }, {
     key: 'getAllDataFromFirebase',
     value: function getAllDataFromFirebase() {
-      var _this2 = this;
+      var _this4 = this;
 
       return new Promise(function (resolve, reject) {
-        _this2.renderer.loading.enable();
-        _this2.renderer.loading.message('Getting Collection from Database');
-        _this2.firestore.getAllData().then(function (data) {
-          _this2.setData(data);
-          _this2.renderer.loading.disable();
+        _this4.renderer.loading.enable();
+        _this4.renderer.loading.message('Getting Collection from Database');
+        _this4.firestore.getAllData().then(function (data) {
+          _this4.setData(data);
+          _this4.renderer.loading.disable();
           resolve();
         }).catch(reject);
       });
@@ -484,14 +558,14 @@ var Store = function () {
   }, {
     key: 'loadAllDataFromJSON',
     value: function loadAllDataFromJSON() {
-      var _this3 = this;
+      var _this5 = this;
 
       return new Promise(function (resolve, reject) {
-        _this3.renderer.loading.enable();
-        _this3.renderer.loading.message('Loading Data');
+        _this5.renderer.loading.enable();
+        _this5.renderer.loading.message('Loading Data');
         axios.get('data/' + LOCAL_KEY + '.json', {}).then(function (data) {
-          _this3.setData(data.data);
-          _this3.renderer.loading.disable();
+          _this5.setData(data.data);
+          _this5.renderer.loading.disable();
           resolve();
         }).catch(reject);
       });
@@ -499,16 +573,16 @@ var Store = function () {
   }, {
     key: 'updateCollection',
     value: function updateCollection() {
-      var _this4 = this;
+      var _this6 = this;
 
       this.renderer.loading.enable();
       this.renderer.loading.message('Getting Collection from Discogs');
       return new Promise(function (resolve, reject) {
-        _this4.webtask.getCollection().then(function (data) {
-          _this4.renderer.loading.message('Writing Collection to Database');
-          _this4.firestore.writeCollection(data).then(function (data) {
-            _this4.renderer.loading.message('Wrote Collection to Database');
-            _this4._clearStore();
+        _this6.webtask.getCollection().then(function (data) {
+          _this6.renderer.loading.message('Writing Collection to Database');
+          _this6.firestore.writeCollection(data).then(function (data) {
+            _this6.renderer.loading.message('Wrote Collection to Database');
+            _this6._clearStore();
             resolve();
           }).catch(reject);
         }).catch(reject);
@@ -516,35 +590,53 @@ var Store = function () {
     }
   }, {
     key: 'setData',
-    value: function setData(_ref) {
-      var _this5 = this;
+    value: function setData(_ref2) {
+      var _this7 = this;
 
-      var user = _ref.user,
-          collection = _ref.collection,
-          releases = _ref.releases;
+      var user = _ref2.user,
+          collection = _ref2.collection,
+          releases = _ref2.releases,
+          spotify = _ref2.spotify;
 
       this._ = {
         user: user,
         releases: releases,
+        spotify: spotify,
         collectionFolders: collection.folders,
         collectionReleases: collection.releases,
         missingReleaseIds: []
       };
       Object.keys(this._.collectionReleases).forEach(function (releaseId) {
-        if (!_this5._.releases[releaseId]) _this5._.missingReleaseIds.push(releaseId);
+        if (!_this7._.releases[releaseId]) _this7._.missingReleaseIds.push(releaseId);
       });
-      this._setStore({ user: user, collection: collection, releases: releases });
+      this._setStore({ user: user, collection: collection, releases: releases, spotify: spotify });
+    }
+  }, {
+    key: 'saveState',
+    value: function saveState() {
+      var _ref3 = this._,
+          user = _ref3.user,
+          collectionReleases = _ref3.collectionReleases,
+          collectionFolders = _ref3.collectionFolders,
+          releases = _ref3.releases,
+          spotify = _ref3.spotify;
+
+      var collection = {
+        folders: collectionFolders,
+        releases: collectionReleases
+      };
+      this._setStore({ user: user, collection: collection, releases: releases, spotify: spotify });
     }
   }, {
     key: 'loadMissingReleases',
     value: function loadMissingReleases() {
-      var _this6 = this;
+      var _this8 = this;
 
       // "Loading" state of app with progress notifications
       this.renderer.loading.enable();
       this.renderer.loading.message('Loading ' + this._.missingReleaseIds.length + ' Releases from Discogs.');
       return new Promise(function (resolve, reject) {
-        var ids = _this6._.missingReleaseIds,
+        var ids = _this8._.missingReleaseIds,
             chunkedIds = [],
 
         // If we can, we do it all at once, otherwise we throttle to 10 per 15 seconds
@@ -552,13 +644,13 @@ var Store = function () {
         while (ids.length > 0) {
           chunkedIds.push(ids.splice(0, size));
         }var chunks = chunkedIds.length,
-            time = _this6._time(chunks * BATCH_SECONDS);
-        _this6.renderer.loading.message('This will take around ' + time + ' in ' + chunks + ' pass(es).');
+            time = _this8._time(chunks * BATCH_SECONDS);
+        _this8.renderer.loading.message('This will take around ' + time + ' in ' + chunks + ' pass(es).');
         // Get Release(s) from Webtask and progressively Write Release(s) to Firestore
-        _this6.loadReleases(chunkedIds, chunks, 0).then(function () {
-          _this6.renderer.loading.message('Completed ' + chunks + ' pass(es)');
+        _this8.loadReleases(chunkedIds, chunks, 0).then(function () {
+          _this8.renderer.loading.message('Completed ' + chunks + ' pass(es)');
           // Delete localStorage
-          _this6._clearStore();
+          _this8._clearStore();
           resolve();
         }).catch(reject);
       });
@@ -566,23 +658,22 @@ var Store = function () {
   }, {
     key: 'updateRelease',
     value: function updateRelease(id) {
-      var _this7 = this;
+      var _this9 = this;
 
       this.renderer.loading.enable();
       return new Promise(function (resolve, reject) {
-        _this7.loadReleases([[id]], 1, 0).then(function (response) {
-          _this7._.releases[id] = response.data[id];
-          var _ref2 = _this7._,
-              releases = _ref2.releases,
-              user = _ref2.user,
-              collection = {
-            releases: _this7._.collectionReleases,
-            folders: _this7._.collectionFolders
-          };
-
-          _this7._setStore({ user: user, collection: collection, releases: releases });
-          _this7.renderer.loading.disable();
-          resolve();
+        _this9.loadReleases([[id]], 1, 0).then(function (response) {
+          _this9._.releases[id] = response.data[id];
+          if (!_this9._.spotify[id]) _this9.searchSpotify(_this9._.releases[id]).then(function (spotifyId) {
+            _this9._.spotify[id] = { id: spotifyId };
+            _this9.saveState();
+            _this9.renderer.loading.disable();
+            resolve();
+          });else {
+            _this9.saveState();
+            _this9.renderer.loading.disable();
+            resolve();
+          }
         }).catch(reject);
       });
     }
@@ -592,30 +683,30 @@ var Store = function () {
   }, {
     key: 'loadReleases',
     value: function loadReleases(chunkedIds, chunks, index) {
-      var _this8 = this;
+      var _this10 = this;
 
       var count = chunkedIds[index].length,
           ids = chunkedIds[index].join(',');
       return new Promise(function (resolve, reject) {
-        _this8.webtask.getReleases(ids).then(function (data) {
+        _this10.webtask.getReleases(ids).then(function (data) {
           index++;
-          var time = _this8._time((chunks - index + 1) * BATCH_SECONDS);
-          _this8.renderer.loading.message('Got ' + index + '/' + chunks + ' batches of Releases from Discogs. ~' + time + ' remaining.');
+          var time = _this10._time((chunks - index + 1) * BATCH_SECONDS);
+          _this10.renderer.loading.message('Got ' + index + '/' + chunks + ' batches of Releases from Discogs. ~' + time + ' remaining.');
           // If we need to get more
           if (index < chunks) {
             // Write existing to Firebase (will load on window.reload later)
-            _this8.firestore.writeReleases(data).then(function () {
-              _this8.renderer.loading.message('Wrote ' + count + ' Releases to Database.');
+            _this10.firestore.writeReleases(data).then(function () {
+              _this10.renderer.loading.message('Wrote ' + count + ' Releases to Database.');
             }).catch(reject);
             // Queue it again with the next batch
             setTimeout(function () {
-              resolve(_this8.loadReleases(chunkedIds, chunks, index));
+              resolve(_this10.loadReleases(chunkedIds, chunks, index));
             }, 1000 * BATCH_SECONDS);
           } else {
             // We have what we need
             // Write existing to Firebase (will load on window.reload later)
-            _this8.firestore.writeReleases(data).then(function () {
-              _this8.renderer.loading.message('Wrote ' + count + ' Releases to Database.');
+            _this10.firestore.writeReleases(data).then(function () {
+              _this10.renderer.loading.message('Wrote ' + count + ' Releases to Database.');
               // Resolve
               resolve(data);
             }).catch(reject);
@@ -648,6 +739,7 @@ var Store = function () {
     value: function randomRelease() {
       var ids = Object.keys(this._.releases),
           id = ids[Math.floor(Math.random() * ids.length)];
+      this.renderer.currResultId = id;
       this.renderer.release.render(id);
     }
   }, {
@@ -704,27 +796,27 @@ var Store = function () {
   }, {
     key: '_categorizeReleases',
     value: function _categorizeReleases(collectionReleases) {
-      var _this9 = this;
+      var _this11 = this;
 
       this.categorized = { artist: {}, label: {}, companies: {} };
       Object.values(collectionReleases).forEach(function (collectionRelease) {
-        var release = _this9._.releases[collectionRelease.id];
+        var release = _this11._.releases[collectionRelease.id];
         Object.values(release.artists).forEach(function (artist) {
           var name = artist.name;
           if (name !== 'Various') {
-            _this9.categorized.artist[name] = _this9.categorized.artist[name] || [];
-            _this9.categorized.artist[name].push(release.id);
+            _this11.categorized.artist[name] = _this11.categorized.artist[name] || [];
+            _this11.categorized.artist[name].push(release.id);
           }
         });
         Object.values(release.labels).forEach(function (label) {
           var name = label.name;
-          _this9.categorized.label[name] = _this9.categorized.label[name] || [];
-          _this9.categorized.label[name].push(release.id);
+          _this11.categorized.label[name] = _this11.categorized.label[name] || [];
+          _this11.categorized.label[name].push(release.id);
         });
         Object.values(release.companies).forEach(function (company) {
           var name = company.type + '-' + company.name;
-          _this9.categorized.companies[name] = _this9.categorized.companies[name] || [];
-          _this9.categorized.companies[name].push(release.id);
+          _this11.categorized.companies[name] = _this11.categorized.companies[name] || [];
+          _this11.categorized.companies[name].push(release.id);
         });
       });
     }
@@ -772,25 +864,29 @@ var Firestore = function () {
     value: function getAllData() {
       return new Promise(function (resolve, reject) {
         var response = { collection: {} };
-        _index2.default.Users.get(DISCOGS_USERNAME).then(function (user) {
-          if (user.exists) {
-            response.user = user.data();
-            _index2.default.Folders.getCollectionFolders(DISCOGS_USERNAME).then(function (folders) {
-              response.collection.folders = folders;
-              _index2.default.Releases.getCollectionReleases(DISCOGS_USERNAME).then(function (releases) {
-                response.collection.releases = releases;
-                _index2.default.Releases.getReleases().then(function (releases) {
-                  response.releases = releases;
-                  resolve(response);
+        _index2.default.Spotify.get().then(function (spotify) {
+          response.spotify = spotify;
+          _index2.default.Users.get(DISCOGS_USERNAME).then(function (user) {
+            if (user.exists) {
+              response.user = user.data();
+              _index2.default.Folders.getCollectionFolders(DISCOGS_USERNAME).then(function (folders) {
+                response.collection.folders = folders;
+                _index2.default.Releases.getCollectionReleases(DISCOGS_USERNAME).then(function (releases) {
+                  response.collection.releases = releases;
+                  _index2.default.Releases.getReleases().then(function (releases) {
+                    response.releases = releases;
+                    resolve(response);
+                  }).catch(reject);
                 }).catch(reject);
               }).catch(reject);
-            }).catch(reject);
-          } else {
-            response.user = {};
-            response.collection = { folders: {}, releases: {} };
-            response.releases = {};
-            resolve(response);
-          }
+            } else {
+              response.user = {};
+              response.spotify = {};
+              response.collection = { folders: {}, releases: {} };
+              response.releases = {};
+              resolve(response);
+            }
+          }).catch(reject);
         }).catch(reject);
       });
     }
@@ -823,6 +919,20 @@ var Firestore = function () {
         _index2.default.Releases.batchCreateReleases(data).then(resolve).catch(reject);
       });
     }
+  }, {
+    key: 'writeSpotify',
+    value: function writeSpotify(releases) {
+      return new Promise(function (resolve, reject) {
+        _index2.default.Spotify.batchUpdateSpotify(releases).then(resolve).catch(reject);
+      });
+    }
+  }, {
+    key: 'updateSpotifyId',
+    value: function updateSpotifyId(releaseId, spotifyId) {
+      return new Promise(function (resolve, reject) {
+        _index2.default.Spotify.updateSpotifyId(releaseId, spotifyId).then(resolve).catch(reject);
+      });
+    }
   }]);
 
   return Firestore;
@@ -849,7 +959,11 @@ var _Releases = __webpack_require__(10);
 
 var _Releases2 = _interopRequireDefault(_Releases);
 
-var _Users = __webpack_require__(12);
+var _Spotify = __webpack_require__(12);
+
+var _Spotify2 = _interopRequireDefault(_Spotify);
+
+var _Users = __webpack_require__(13);
 
 var _Users2 = _interopRequireDefault(_Users);
 
@@ -858,6 +972,7 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 var Adapters = {
   Folders: new _Folders2.default(),
   Releases: new _Releases2.default(),
+  Spotify: new _Spotify2.default(),
   Users: new _Users2.default()
 };
 
@@ -1282,6 +1397,77 @@ function _possibleConstructorReturn(self, call) { if (!self) { throw new Referen
 
 function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 
+var Spotify = function (_Adapter) {
+  _inherits(Spotify, _Adapter);
+
+  function Spotify() {
+    _classCallCheck(this, Spotify);
+
+    return _possibleConstructorReturn(this, (Spotify.__proto__ || Object.getPrototypeOf(Spotify)).apply(this, arguments));
+  }
+
+  _createClass(Spotify, [{
+    key: 'updateSpotifyId',
+    value: function updateSpotifyId(releaseId, spotifyId) {
+      var _this2 = this;
+
+      return new Promise(function (resolve, reject) {
+        _this2.database.collection('spotify').doc(releaseId).set({ id: spotifyId }).then(resolve).catch(reject);
+      });
+    }
+  }, {
+    key: 'batchUpdateSpotify',
+    value: function batchUpdateSpotify(releases) {
+      var batch = this.database.batch();
+      for (var releaseId in releases) {
+        var ref = this.database.collection('spotify').doc(releaseId);
+        batch.set(ref, releases[releaseId].id);
+      }
+      batch.commit().then(resolve).catch(reject);
+    }
+  }, {
+    key: 'get',
+    value: function get() {
+      var _this3 = this;
+
+      return new Promise(function (resolve, reject) {
+        _this3.database.collection('spotify').get().then(function (snap) {
+          return resolve(_this3.documents(snap));
+        }).catch(reject);
+      });
+    }
+  }]);
+
+  return Spotify;
+}(_Adapter3.default);
+
+exports.default = Spotify;
+
+/***/ }),
+/* 13 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+var _Adapter2 = __webpack_require__(0);
+
+var _Adapter3 = _interopRequireDefault(_Adapter2);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
 var Users = function (_Adapter) {
   _inherits(Users, _Adapter);
 
@@ -1317,7 +1503,7 @@ var Users = function (_Adapter) {
 exports.default = Users;
 
 /***/ }),
-/* 13 */
+/* 14 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -1329,19 +1515,19 @@ Object.defineProperty(exports, "__esModule", {
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
-var _Loading = __webpack_require__(14);
+var _Loading = __webpack_require__(15);
 
 var _Loading2 = _interopRequireDefault(_Loading);
 
-var _Release = __webpack_require__(15);
+var _Release = __webpack_require__(16);
 
 var _Release2 = _interopRequireDefault(_Release);
 
-var _Results = __webpack_require__(16);
+var _Results = __webpack_require__(17);
 
 var _Results2 = _interopRequireDefault(_Results);
 
-var _View = __webpack_require__(17);
+var _View = __webpack_require__(18);
 
 var _View2 = _interopRequireDefault(_View);
 
@@ -1381,7 +1567,7 @@ var Renderer = function () {
         }
       });
       this.$updateRelease.addEventListener('click', function () {
-        var id = _this.resultIds[_this.currResultIdx];
+        var id = _this.currResultId;
         if (id) _this.store.updateRelease(id).then(function () {
           _this.release.render(id);
         });else alert('No Release to Update.');
@@ -1477,7 +1663,7 @@ var Renderer = function () {
 exports.default = Renderer;
 
 /***/ }),
-/* 14 */
+/* 15 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -1528,7 +1714,7 @@ var Loading = function () {
 exports.default = Loading;
 
 /***/ }),
-/* 15 */
+/* 16 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -1549,7 +1735,6 @@ var Release = function () {
     this.renderer = renderer;
     this.store = renderer.store;
     this.$container = document.querySelector('#details');
-    this.$container.classList.add('hide');
     this.$ul = this.$container.querySelector('ul');
     this.$image = this.$container.querySelector('.image');
     this.$title = this.$container.querySelector('.title');
@@ -1696,7 +1881,7 @@ var Release = function () {
 exports.default = Release;
 
 /***/ }),
-/* 16 */
+/* 17 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -1828,7 +2013,7 @@ var Results = function () {
 exports.default = Results;
 
 /***/ }),
-/* 17 */
+/* 18 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -1857,12 +2042,14 @@ var View = function () {
     this.$artist = this.$container.querySelector('.artist');
     this.$meta = this.$container.querySelector('.meta');
     this.$close = this.$container.querySelector('#close');
+    this.$updateSpotify = this.$container.querySelector('.update-spotify');
     this.$close.addEventListener('click', function () {
       _this.renderer.handleEscape();
     });
     this.$companies = this.$container.querySelector('.companies');
     this.$tracklist = this.$container.querySelector('.tracklist ul');
-    this.$spotify = this.$container.querySelector('.tracklist iframe');
+    this.$spotify = this.$container.querySelector('.tracklist .spotify-frame');
+    if (this.store.app.masterUser) this.initializeSpotifyForm();
   }
 
   _createClass(View, [{
@@ -1880,54 +2067,58 @@ var View = function () {
   }, {
     key: 'render',
     value: function render(release) {
-      this.changed = this.releaseId !== release.id;
-      if (!this.changed) return;
       this.releaseId = release.id;
-      var collectionRelease = this.store._.collectionReleases[release.id];
-      this.renderImage(release);
-      this.renderTitle(release);
-      this.renderArtist(release);
-      this.renderMeta(release, collectionRelease);
-      this.renderCompanies(release);
-      this.renderTracklist(release);
+      this.release = release;
+      this.collectionRelease = this.store._.collectionReleases[release.id];
+      this.renderImage();
+      this.renderTitle();
+      this.renderArtist();
+      this.renderMeta();
+      this.renderCompanies();
+      this.renderTracklist();
+      if (this.store.app.masterUser) this.renderSpotifyForm();
     }
   }, {
     key: 'renderImage',
-    value: function renderImage(_ref) {
-      var images = _ref.images;
+    value: function renderImage() {
+      var images = this.release.images;
 
       var image = images[0];
       if (image) this.$image.style.backgroundImage = 'url(\'' + image.uri + '\')';else this.$image.style.backgroundImage = 'none';
     }
   }, {
     key: 'renderTitle',
-    value: function renderTitle(_ref2) {
-      var title = _ref2.title,
-          id = _ref2.id;
+    value: function renderTitle() {
+      var _release = this.release,
+          title = _release.title,
+          id = _release.id;
 
       this.$title.innerHTML = '<a href="https://www.discogs.com/release/' + id + '" target="blank">\n      ' + title.replace(/ ([^ ]+)$/, '&nbsp;$1') + '\n    </a>';
       this.$h1.innerHTML = title;
     }
   }, {
     key: 'renderArtist',
-    value: function renderArtist(_ref3) {
-      var artists = _ref3.artists,
-          year = _ref3.year;
+    value: function renderArtist() {
+      var _release2 = this.release,
+          artists = _release2.artists,
+          year = _release2.year;
 
       year = year > 1900 ? ',&nbsp;' + year : '';
-      this.$artist.innerHTML = Object.values(artists).map(function (_ref4) {
-        var id = _ref4.id,
-            name = _ref4.name;
+      this.$artist.innerHTML = Object.values(artists).map(function (_ref) {
+        var id = _ref.id,
+            name = _ref.name;
         return '<span><a href="https://www.discogs.com/artist/' + id + '" target="blank">' + name + '</a></span>';
       }).join(', ') + year;
     }
   }, {
     key: 'renderMeta',
-    value: function renderMeta(_ref5, _ref6) {
-      var formats = _ref5.formats,
-          labels = _ref5.labels;
-      var added = _ref6.added,
-          folderId = _ref6.folderId;
+    value: function renderMeta() {
+      var _release3 = this.release,
+          formats = _release3.formats,
+          labels = _release3.labels,
+          _collectionRelease = this.collectionRelease,
+          added = _collectionRelease.added,
+          folderId = _collectionRelease.folderId;
 
       this.$meta.innerHTML = '';
       labels = Object.values(labels).map(function (label) {
@@ -1948,54 +2139,66 @@ var View = function () {
     }
   }, {
     key: 'renderCompanies',
-    value: function renderCompanies(_ref7) {
-      var companies = _ref7.companies;
+    value: function renderCompanies() {
+      var companies = this.release.companies;
 
       this.$companies.innerHTML = '';
-      companies = Object.values(companies).map(function (_ref8) {
-        var name = _ref8.name,
-            id = _ref8.id,
-            type = _ref8.type;
+      companies = Object.values(companies).map(function (_ref2) {
+        var name = _ref2.name,
+            id = _ref2.id,
+            type = _ref2.type;
         return '<span>\n            ' + type + ':\n            <a href="https://www.discogs.com/label/' + id + '" target="blank">\n            ' + name.split(' ').join('&nbsp;') + '</a></span>';
       }).join('<br>');
       this.$companies.innerHTML += '<p class="label">' + companies + '</p>';
     }
   }, {
-    key: 'renderTracklist',
-    value: function renderTracklist(release) {
+    key: 'initializeSpotifyForm',
+    value: function initializeSpotifyForm() {
       var _this2 = this;
 
+      this.$updateSpotify.classList.remove('hide');
+      this.$spotifyId = this.$updateSpotify.querySelector('input');
+      this.$spotifySubmit = this.$updateSpotify.querySelector('button');
+      this.$spotifySubmit.addEventListener('click', function () {
+        _this2.renderer.loading.enable();
+        _this2.renderer.loading.message('Updating Spotify Id');
+        _this2.store.updateSpotifyId(_this2.releaseId, _this2.$spotifyId.value).then(function () {
+          _this2.renderer.loading.disable();
+          _this2.renderTracklist();
+        });
+      });
+    }
+  }, {
+    key: 'renderSpotifyForm',
+    value: function renderSpotifyForm() {
+      var spotify = this.store._.spotify[this.releaseId];
+      if (spotify !== undefined) this.$spotifyId.value = spotify.id;else this.$spotifyId.value = '';
+    }
+  }, {
+    key: 'renderTracklist',
+    value: function renderTracklist() {
+      var _this3 = this;
+
+      var release = this.store._.releases[this.releaseId];
       var tracklist = release.tracklist,
           artists = release.artists,
           title = release.title;
 
+      var releaseId = release.id;
       this.$tracklist.innerHTML = '';
-      this.$spotify.setAttribute('src', '');
-      this.$spotify.classList.add('hide');
-      var artist = Object.values(artists)[0].name;
-      this.renderer.store.searchSpotifyForRelease(artist, title).then(function (data) {
-        var album = data.data.albums.items[0];
-        if (album) {
-          _this2.$spotify.setAttribute('src', 'https://open.spotify.com/embed/album/' + album.id);
-          _this2.$spotify.classList.remove('hide');
-        } else {
-          // Try searching without parentheticals
-          title = title.replace(/ \([^\)]+\)$/, '');
-          _this2.renderer.store.searchSpotifyForRelease(artist, title).then(function (data) {
-            var album = data.data.albums.items[0];
-            if (album) {
-              _this2.$spotify.setAttribute('src', 'https://open.spotify.com/embed/album/' + album.id);
-              _this2.$spotify.classList.remove('hide');
-            }
-          });
-        }
-      });
+      this.$spotify.innerHTML = '';
+      var spotify = this.store._.spotify && this.store._.spotify[release.id];
+      if (spotify && spotify.id !== '') {
+        this.$spotify.innerHTML = '<iframe src="https://open.spotify.com/embed/album/' + spotify.id + '"\n          width="300" height="380" frameborder="0" allowtransparency="true"></iframe>';
+        this.$spotify.classList.remove('hide');
+      }
+
       tracklist.forEach(function (track) {
         var $li = document.createElement('li'),
             title = track.title.replace(/ ([^ ]+)$/, '&nbsp;$1');
         $li.classList.add(track.type);
         $li.innerHTML = '<span>' + track.position + '</span><span>' + title + '</span>';
-        _this2.$tracklist.appendChild($li);
+        _this3.$tracklist.appendChild($li);
       });
     }
   }, {
