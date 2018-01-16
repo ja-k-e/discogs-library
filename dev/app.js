@@ -733,6 +733,16 @@ var Store = function () {
         keys: ['artistTitle']
       });
       this.randomRelease();
+      var ids = Object.keys(this._.spotify);
+      var missing = Object.values(this._.releases).filter(function (i) {
+        return !ids.includes(i.id);
+      });
+      if (missing.length > 0) {
+        console.info('Missing Spotify Data');
+        console.info(missing.map(function (i) {
+          return { title: i.title, id: i.id };
+        }));
+      }
     }
   }, {
     key: 'randomRelease',
