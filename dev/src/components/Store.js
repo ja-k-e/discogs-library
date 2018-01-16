@@ -303,14 +303,15 @@ export default class Store {
     });
     this.randomRelease();
     let ids = Object.keys(this._.spotify);
-    let missing = Object.values(this._.releases).filter(
+    let missing = Object.values(this._.collectionReleases).filter(
       i => !ids.includes(i.id)
     );
     if (missing.length > 0) {
       console.info('Missing Spotify Data');
       console.info(
         missing.map(i => {
-          return { title: i.title, id: i.id };
+          let { title, id } = this._.releases[i.id];
+          return { title, id };
         })
       );
     }

@@ -717,6 +717,8 @@ var Store = function () {
   }, {
     key: 'process',
     value: function process() {
+      var _this11 = this;
+
       this.searchable = Object.values(this._.collectionReleases).map(this._searchableRelease.bind(this));
       this._categorizeReleases(this._.collectionReleases);
       this.fuseSearch = new Fuse(this.searchable, {
@@ -734,13 +736,17 @@ var Store = function () {
       });
       this.randomRelease();
       var ids = Object.keys(this._.spotify);
-      var missing = Object.values(this._.releases).filter(function (i) {
+      var missing = Object.values(this._.collectionReleases).filter(function (i) {
         return !ids.includes(i.id);
       });
       if (missing.length > 0) {
         console.info('Missing Spotify Data');
         console.info(missing.map(function (i) {
-          return { title: i.title, id: i.id };
+          var _$releases$i$id = _this11._.releases[i.id],
+              title = _$releases$i$id.title,
+              id = _$releases$i$id.id;
+
+          return { title: title, id: id };
         }));
       }
     }
@@ -806,27 +812,27 @@ var Store = function () {
   }, {
     key: '_categorizeReleases',
     value: function _categorizeReleases(collectionReleases) {
-      var _this11 = this;
+      var _this12 = this;
 
       this.categorized = { artist: {}, label: {}, companies: {} };
       Object.values(collectionReleases).forEach(function (collectionRelease) {
-        var release = _this11._.releases[collectionRelease.id];
+        var release = _this12._.releases[collectionRelease.id];
         Object.values(release.artists).forEach(function (artist) {
           var name = artist.name;
           if (name !== 'Various') {
-            _this11.categorized.artist[name] = _this11.categorized.artist[name] || [];
-            _this11.categorized.artist[name].push(release.id);
+            _this12.categorized.artist[name] = _this12.categorized.artist[name] || [];
+            _this12.categorized.artist[name].push(release.id);
           }
         });
         Object.values(release.labels).forEach(function (label) {
           var name = label.name;
-          _this11.categorized.label[name] = _this11.categorized.label[name] || [];
-          _this11.categorized.label[name].push(release.id);
+          _this12.categorized.label[name] = _this12.categorized.label[name] || [];
+          _this12.categorized.label[name].push(release.id);
         });
         Object.values(release.companies).forEach(function (company) {
           var name = company.type + '-' + company.name;
-          _this11.categorized.companies[name] = _this11.categorized.companies[name] || [];
-          _this11.categorized.companies[name].push(release.id);
+          _this12.categorized.companies[name] = _this12.categorized.companies[name] || [];
+          _this12.categorized.companies[name].push(release.id);
         });
       });
     }
