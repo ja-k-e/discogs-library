@@ -2,6 +2,8 @@
 
 ![Discogs Library Browser](https://d.pr/i/VP5Hiy/81XBqo4XJS.gif)
 
+Try it out at [jakealbaugh.github.io/discogs-library](https://jakealbaugh.github.io/discogs-library/).
+
 This Collection browser pulls in data from Discogs using Webtask, then writes it to a Firestore Database, giving you a free replication (and an easier to browse) instance of your record collection.
 
 It also generates a JSON download of your collection that you can drop into `dev/data`, which the app uses for visitors and circumvents the need for Firebase Authentication.

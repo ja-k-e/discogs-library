@@ -4,7 +4,7 @@
   "description":
     "Browsing your Discogs library, if yer super cool. Meant to be placed neatly next to your record player.",
   "main": "prod/app.js",
-  "repository": "https://github.com/jakealbaugh/discogs_library",
+  "repository": "https://github.com/jakealbaugh/discogs-library",
   "dependencies": {},
   "devDependencies": {
     "babel-core": "^6.26.0",
