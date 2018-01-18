@@ -148,35 +148,3 @@ function formattedRelease(release) {
     added: new Date(release.date_added).getTime()
   };
 }
-
-function formattedArtists(data) {
-  var artists = {};
-  data.forEach(function(artist) {
-    artists[artist.id] = {
-      id: artist.id.toString(),
-      name: artist.name.replace(/ \(\d+\)$/, '')
-    };
-  });
-  return artists;
-}
-
-function formattedLabels(data) {
-  var labels = {};
-  data.forEach(function(label) {
-    labels[label.id] = {
-      id: label.id.toString(),
-      name: label.name.replace(/ \(\d+\)$/, ''),
-      catno: label.catno,
-      type: label.entity_type_name
-    };
-  });
-  return labels;
-}
-
-function formattedFormats(format) {
-  return {
-    quantity: format.qty,
-    name: format.name,
-    description: format.descriptions ? format.descriptions.join(', ') : ''
-  };
-}
