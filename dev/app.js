@@ -60,7 +60,7 @@
 /******/ 	__webpack_require__.p = "";
 /******/
 /******/ 	// Load entry module and return exports
-/******/ 	return __webpack_require__(__webpack_require__.s = 2);
+/******/ 	return __webpack_require__(__webpack_require__.s = 3);
 /******/ })
 /************************************************************************/
 /******/ ([
@@ -106,6 +106,102 @@ exports.default = Adapter;
 
 /***/ }),
 /* 1 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+var Company = function () {
+  function Company(renderer) {
+    _classCallCheck(this, Company);
+
+    this.renderer = renderer;
+    this.store = renderer.store;
+    this.$container = document.querySelector('#details');
+    this.$ul = this.$container.querySelector('ul');
+    this.$image = this.$container.querySelector('.image');
+    this.$title = this.$container.querySelector('.title');
+    this.$artist = this.$container.querySelector('.artist');
+    this.$meta = this.$container.querySelector('.meta');
+    this.$view = this.$container.querySelector('.view');
+    this.$artistList = document.querySelector('.artist-list');
+    this.$labelList = document.querySelector('.label-list');
+    this.$companyList = document.querySelector('.company-list');
+  }
+
+  _createClass(Company, [{
+    key: 'renderList',
+    value: function renderList($list, title, ids, includeArtist) {
+      var _this = this;
+
+      var used = arguments.length > 4 && arguments[4] !== undefined ? arguments[4] : [];
+      var listType = arguments.length > 5 && arguments[5] !== undefined ? arguments[5] : null;
+
+      var $ul = void 0,
+          rendered = false;
+      ids.forEach(function (id) {
+        if (!used.includes(id)) {
+          if (!rendered) {
+            var $p = document.createElement('p');
+            $p.innerHTML = listType ? listType + ': ' + title : title;
+            $list.appendChild($p);
+            $ul = document.createElement('ul');
+            $list.appendChild($ul);
+            rendered = true;
+          }
+          var release = _this.store._.releases[id],
+              $li = document.createElement('li'),
+              $a = document.createElement('a');
+          $a.setAttribute('href', '#');
+          $li.appendChild($a);
+          $a.addEventListener('click', function (e) {
+            e.preventDefault();
+            _this.renderer.results.itemType = 'release';
+            _this.renderer.release.render(release.id);
+          });
+          var year = release.year > 1900 ? release.year : '',
+              image = release.images ? release.images[0] : null;
+          if (image) $a.innerHTML += '<div class="image" style="background-image: url(\'' + image.uri + '\')"></div>';else $a.innerHTML += '<div class="image"></div>';
+          if (includeArtist) {
+            var artist = Object.values(release.artists).map(function (a) {
+              return a.name;
+            }).join(', ');
+            title = release.title;
+            artist = _this.truncatedString(artist);
+            title = _this.truncatedString(title);
+            $a.innerHTML += '<div><span><span>' + title + '</span><span>' + year + '</span></span><span>' + artist + '</span></div>';
+          } else {
+            var _title = release.title;
+            _title = _this.truncatedString(_title);
+            $a.innerHTML += '<div><span><span>' + _title + '</span><span>' + year + '</span></span></div>';
+          }
+          $ul.appendChild($li);
+        }
+      });
+    }
+  }, {
+    key: 'truncatedString',
+    value: function truncatedString(string) {
+      if (string.length <= 27) return string;
+      return string.substring(0, 27).replace(/ +$/, '') + '\u2026';
+    }
+  }]);
+
+  return Company;
+}();
+
+exports.default = Company;
+
+/***/ }),
+/* 2 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -169,17 +265,17 @@ var Webtask = function () {
 exports.default = Webtask;
 
 /***/ }),
-/* 2 */
+/* 3 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 
-var _DB = __webpack_require__(3);
+var _DB = __webpack_require__(4);
 
 var _DB2 = _interopRequireDefault(_DB);
 
-var _App = __webpack_require__(5);
+var _App = __webpack_require__(6);
 
 var _App2 = _interopRequireDefault(_App);
 
@@ -202,7 +298,7 @@ if (!!window.location.search.match(/\?authorize=true/)) db.authorize(function (d
 });
 
 /***/ }),
-/* 3 */
+/* 4 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -216,7 +312,7 @@ var _createClass = function () { function defineProperties(target, props) { for 
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
-var firebaseKeys = __webpack_require__(4);
+var firebaseKeys = __webpack_require__(5);
 
 var DB = function () {
   function DB() {
@@ -285,7 +381,7 @@ var DB = function () {
 exports.default = DB;
 
 /***/ }),
-/* 4 */
+/* 5 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -301,7 +397,7 @@ module.exports = {
 };
 
 /***/ }),
-/* 5 */
+/* 6 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -313,11 +409,11 @@ Object.defineProperty(exports, "__esModule", {
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
-var _Store = __webpack_require__(6);
+var _Store = __webpack_require__(7);
 
 var _Store2 = _interopRequireDefault(_Store);
 
-var _Webtask = __webpack_require__(1);
+var _Webtask = __webpack_require__(2);
 
 var _Webtask2 = _interopRequireDefault(_Webtask);
 
@@ -411,7 +507,7 @@ var App = function () {
 exports.default = App;
 
 /***/ }),
-/* 6 */
+/* 7 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -423,15 +519,15 @@ Object.defineProperty(exports, "__esModule", {
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
-var _Firestore = __webpack_require__(7);
+var _Firestore = __webpack_require__(8);
 
 var _Firestore2 = _interopRequireDefault(_Firestore);
 
-var _Renderer = __webpack_require__(14);
+var _Renderer = __webpack_require__(15);
 
 var _Renderer2 = _interopRequireDefault(_Renderer);
 
-var _Webtask = __webpack_require__(1);
+var _Webtask = __webpack_require__(2);
 
 var _Webtask2 = _interopRequireDefault(_Webtask);
 
@@ -579,8 +675,8 @@ var Store = function () {
       });
     }
   }, {
-    key: 'updateCollection',
-    value: function updateCollection() {
+    key: 'writeCollection',
+    value: function writeCollection() {
       var _this6 = this;
 
       this.renderer.loading.enable();
@@ -597,9 +693,27 @@ var Store = function () {
       });
     }
   }, {
+    key: 'updateCollection',
+    value: function updateCollection() {
+      var _this7 = this;
+
+      this.renderer.loading.enable();
+      this.renderer.loading.message('Getting Recent Releases from Discogs');
+      return new Promise(function (resolve, reject) {
+        _this7.webtask.getRecent().then(function (data) {
+          _this7.renderer.loading.message('Writing Releases to Database');
+          _this7.firestore.updateCollection(data, _this7._.user.username).then(function (data) {
+            _this7.renderer.loading.message('Wrote Releases to Database');
+            _this7._clearStore();
+            resolve();
+          }).catch(reject);
+        }).catch(reject);
+      });
+    }
+  }, {
     key: 'setData',
     value: function setData(_ref2) {
-      var _this7 = this;
+      var _this8 = this;
 
       var user = _ref2.user,
           collection = _ref2.collection,
@@ -615,7 +729,7 @@ var Store = function () {
         missingReleaseIds: []
       };
       Object.keys(this._.collectionReleases).forEach(function (releaseId) {
-        if (!_this7._.releases[releaseId]) _this7._.missingReleaseIds.push(releaseId);
+        if (!_this8._.releases[releaseId]) _this8._.missingReleaseIds.push(releaseId);
       });
       this._setStore({ user: user, collection: collection, releases: releases, spotify: spotify });
     }
@@ -638,13 +752,13 @@ var Store = function () {
   }, {
     key: 'loadMissingReleases',
     value: function loadMissingReleases() {
-      var _this8 = this;
+      var _this9 = this;
 
       // "Loading" state of app with progress notifications
       this.renderer.loading.enable();
       this.renderer.loading.message('Loading ' + this._.missingReleaseIds.length + ' Releases from Discogs.');
       return new Promise(function (resolve, reject) {
-        var ids = _this8._.missingReleaseIds,
+        var ids = _this9._.missingReleaseIds,
             chunkedIds = [],
 
         // If we can, we do it all at once, otherwise we throttle to 10 per 15 seconds
@@ -652,13 +766,13 @@ var Store = function () {
         while (ids.length > 0) {
           chunkedIds.push(ids.splice(0, size));
         }var chunks = chunkedIds.length,
-            time = _this8._time(chunks * BATCH_SECONDS);
-        _this8.renderer.loading.message('This will take around ' + time + ' in ' + chunks + ' pass(es).');
+            time = _this9._time(chunks * BATCH_SECONDS);
+        _this9.renderer.loading.message('This will take around ' + time + ' in ' + chunks + ' pass(es).');
         // Get Release(s) from Webtask and progressively Write Release(s) to Firestore
-        _this8.loadReleases(chunkedIds, chunks, 0).then(function () {
-          _this8.renderer.loading.message('Completed ' + chunks + ' pass(es)');
+        _this9.loadReleases(chunkedIds, chunks, 0).then(function () {
+          _this9.renderer.loading.message('Completed ' + chunks + ' pass(es)');
           // Delete localStorage
-          _this8._clearStore();
+          _this9._clearStore();
           resolve();
         }).catch(reject);
       });
@@ -666,20 +780,20 @@ var Store = function () {
   }, {
     key: 'updateRelease',
     value: function updateRelease(id) {
-      var _this9 = this;
+      var _this10 = this;
 
       this.renderer.loading.enable();
       return new Promise(function (resolve, reject) {
-        _this9.loadReleases([[id]], 1, 0).then(function (response) {
-          _this9._.releases[id] = response.data[id];
-          if (!_this9._.spotify[id]) _this9.searchSpotify(_this9._.releases[id]).then(function (spotifyId) {
-            _this9._.spotify[id] = { id: spotifyId };
-            _this9.saveState();
-            _this9.renderer.loading.disable();
+        _this10.loadReleases([[id]], 1, 0).then(function (response) {
+          _this10._.releases[id] = response.data[id];
+          if (!_this10._.spotify[id]) _this10.searchSpotify(_this10._.releases[id]).then(function (spotifyId) {
+            _this10._.spotify[id] = { id: spotifyId };
+            _this10.saveState();
+            _this10.renderer.loading.disable();
             resolve();
           });else {
-            _this9.saveState();
-            _this9.renderer.loading.disable();
+            _this10.saveState();
+            _this10.renderer.loading.disable();
             resolve();
           }
         }).catch(reject);
@@ -691,30 +805,30 @@ var Store = function () {
   }, {
     key: 'loadReleases',
     value: function loadReleases(chunkedIds, chunks, index) {
-      var _this10 = this;
+      var _this11 = this;
 
       var count = chunkedIds[index].length,
           ids = chunkedIds[index].join(',');
       return new Promise(function (resolve, reject) {
-        _this10.webtask.getReleases(ids).then(function (data) {
+        _this11.webtask.getReleases(ids).then(function (data) {
           index++;
-          var time = _this10._time((chunks - index + 1) * BATCH_SECONDS);
-          _this10.renderer.loading.message('Got ' + index + '/' + chunks + ' batches of Releases from Discogs. ~' + time + ' remaining.');
+          var time = _this11._time((chunks - index + 1) * BATCH_SECONDS);
+          _this11.renderer.loading.message('Got ' + index + '/' + chunks + ' batches of Releases from Discogs. ~' + time + ' remaining.');
           // If we need to get more
           if (index < chunks) {
             // Write existing to Firebase (will load on window.reload later)
-            _this10.firestore.writeReleases(data).then(function () {
-              _this10.renderer.loading.message('Wrote ' + count + ' Releases to Database.');
+            _this11.firestore.writeReleases(data).then(function () {
+              _this11.renderer.loading.message('Wrote ' + count + ' Releases to Database.');
             }).catch(reject);
             // Queue it again with the next batch
             setTimeout(function () {
-              resolve(_this10.loadReleases(chunkedIds, chunks, index));
+              resolve(_this11.loadReleases(chunkedIds, chunks, index));
             }, 1000 * BATCH_SECONDS);
           } else {
             // We have what we need
             // Write existing to Firebase (will load on window.reload later)
-            _this10.firestore.writeReleases(data).then(function () {
-              _this10.renderer.loading.message('Wrote ' + count + ' Releases to Database.');
+            _this11.firestore.writeReleases(data).then(function () {
+              _this11.renderer.loading.message('Wrote ' + count + ' Releases to Database.');
               // Resolve
               resolve(data);
             }).catch(reject);
@@ -725,11 +839,12 @@ var Store = function () {
   }, {
     key: 'process',
     value: function process() {
-      var _this11 = this;
-
-      this.searchable = Object.values(this._.collectionReleases).map(this._searchableRelease.bind(this));
+      this.searchableReleases = Object.values(this._.collectionReleases).map(this._searchableRelease.bind(this));
       this._categorizeReleases(this._.collectionReleases);
-      this.fuseSearch = new Fuse(this.searchable, {
+
+      this.searchableCompanies = Object.values(this.companies);
+
+      this.fuseReleaseSearch = new Fuse(this.searchableReleases, {
         shouldSort: true,
         includeMatches: true,
         tokenize: true,
@@ -739,10 +854,30 @@ var Store = function () {
         location: 0,
         distance: 100,
         maxPatternLength: 32,
-        minMatchCharLength: 3,
+        minMatchCharLength: 2,
         keys: ['artistTitle']
       });
+      this.fuseCompanySearch = new Fuse(this.searchableCompanies, {
+        shouldSort: true,
+        includeMatches: true,
+        tokenize: true,
+        matchAllTokens: true,
+        findAllMatches: true,
+        threshold: 0.3,
+        location: 0,
+        distance: 100,
+        maxPatternLength: 32,
+        minMatchCharLength: 2,
+        keys: ['name']
+      });
       this.randomRelease();
+      this.detectMissingSpotify();
+    }
+  }, {
+    key: 'detectMissingSpotify',
+    value: function detectMissingSpotify() {
+      var _this12 = this;
+
       var ids = Object.keys(this._.spotify);
       var missing = Object.values(this._.collectionReleases).filter(function (i) {
         return !ids.includes(i.id);
@@ -750,7 +885,7 @@ var Store = function () {
       if (missing.length > 0) {
         console.info('Missing Spotify Data');
         console.info(missing.map(function (i) {
-          var _$releases$i$id = _this11._.releases[i.id],
+          var _$releases$i$id = _this12._.releases[i.id],
               title = _$releases$i$id.title,
               id = _$releases$i$id.id;
 
@@ -763,15 +898,17 @@ var Store = function () {
     value: function randomRelease() {
       var ids = Object.keys(this._.releases),
           id = ids[Math.floor(Math.random() * ids.length)];
+      this.renderer.results.itemType = 'release';
       this.renderer.currResultId = id;
       this.renderer.release.render(id);
     }
   }, {
     key: 'search',
-    value: function search(term) {
-      if (!this.fuseSearch) return null;
+    value: function search(term, type) {
+      if (!this.fuseReleaseSearch) return null;
       if (!term) return null;
-      return this.fuseSearch.search(term);
+      var search = type === 'release' ? this.fuseReleaseSearch : this.fuseCompanySearch;
+      return search.search(term);
     }
   }, {
     key: '_time',
@@ -810,6 +947,9 @@ var Store = function () {
       }).join(', ');
       response.artistTitle = response.artist + ': ' + response.title;
       response.folder = this._.collectionFolders[collectionRelease.folderId].name;
+      response.companies = Object.values(release.labels).concat(Object.values(release.companies)).map(function (c) {
+        return c.name;
+      }).join(', ');
       var formats = {};
       release.formats.forEach(function (format) {
         return formats[format.name] = 1;
@@ -820,27 +960,31 @@ var Store = function () {
   }, {
     key: '_categorizeReleases',
     value: function _categorizeReleases(collectionReleases) {
-      var _this12 = this;
+      var _this13 = this;
 
       this.categorized = { artist: {}, label: {}, companies: {} };
+      this.companies = {};
       Object.values(collectionReleases).forEach(function (collectionRelease) {
-        var release = _this12._.releases[collectionRelease.id];
+        var release = _this13._.releases[collectionRelease.id];
         Object.values(release.artists).forEach(function (artist) {
           var name = artist.name;
           if (name !== 'Various') {
-            _this12.categorized.artist[name] = _this12.categorized.artist[name] || [];
-            _this12.categorized.artist[name].push(release.id);
+            _this13.categorized.artist[name] = _this13.categorized.artist[name] || [];
+            _this13.categorized.artist[name].push(release.id);
           }
         });
-        Object.values(release.labels).forEach(function (label) {
-          var name = label.name;
-          _this12.categorized.label[name] = _this12.categorized.label[name] || [];
-          _this12.categorized.label[name].push(release.id);
-        });
-        Object.values(release.companies).forEach(function (company) {
-          var name = company.type + '-' + company.name;
-          _this12.categorized.companies[name] = _this12.categorized.companies[name] || [];
-          _this12.categorized.companies[name].push(release.id);
+        Object.values(release.labels).concat(Object.values(release.companies)).forEach(function (company) {
+          var key = company.type + '-' + company.id,
+              existing = _this13.companies[company.id];
+          if (existing) {
+            if (!existing.types.includes(company.type)) existing.types.push(company.type);
+          } else _this13.companies[company.id] = {
+            id: company.id,
+            name: company.name,
+            types: [company.type]
+          };
+          _this13.categorized.companies[key] = _this13.categorized.companies[key] || [];
+          _this13.categorized.companies[key].push(release.id);
         });
       });
     }
@@ -852,7 +996,7 @@ var Store = function () {
 exports.default = Store;
 
 /***/ }),
-/* 7 */
+/* 8 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -864,7 +1008,7 @@ Object.defineProperty(exports, "__esModule", {
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
-var _index = __webpack_require__(8);
+var _index = __webpack_require__(9);
 
 var _index2 = _interopRequireDefault(_index);
 
@@ -933,6 +1077,18 @@ var Firestore = function () {
       });
     }
   }, {
+    key: 'updateCollection',
+    value: function updateCollection(response, username) {
+      return new Promise(function (resolve, reject) {
+        if (response.status !== 200) reject(response);
+        var status = response.status,
+            data = response.data;
+        var releases = data.releases;
+
+        _index2.default.Releases.batchUpdateCollectionReleases(releases, username).then(resolve).catch(reject);
+      });
+    }
+  }, {
     key: 'writeReleases',
     value: function writeReleases(response) {
       return new Promise(function (resolve, reject) {
@@ -965,7 +1121,7 @@ var Firestore = function () {
 exports.default = Firestore;
 
 /***/ }),
-/* 8 */
+/* 9 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -975,19 +1131,19 @@ Object.defineProperty(exports, "__esModule", {
   value: true
 });
 
-var _Folders = __webpack_require__(9);
+var _Folders = __webpack_require__(10);
 
 var _Folders2 = _interopRequireDefault(_Folders);
 
-var _Releases = __webpack_require__(10);
+var _Releases = __webpack_require__(11);
 
 var _Releases2 = _interopRequireDefault(_Releases);
 
-var _Spotify = __webpack_require__(12);
+var _Spotify = __webpack_require__(13);
 
 var _Spotify2 = _interopRequireDefault(_Spotify);
 
-var _Users = __webpack_require__(13);
+var _Users = __webpack_require__(14);
 
 var _Users2 = _interopRequireDefault(_Users);
 
@@ -1003,7 +1159,7 @@ var Adapters = {
 exports.default = Adapters;
 
 /***/ }),
-/* 9 */
+/* 10 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -1069,7 +1225,7 @@ var Folders = function (_Adapter) {
 exports.default = Folders;
 
 /***/ }),
-/* 10 */
+/* 11 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -1120,26 +1276,40 @@ var Releases = function (_Adapter) {
       });
     }
   }, {
+    key: 'batchUpdateCollectionReleases',
+    value: function batchUpdateCollectionReleases(releases, username) {
+      var _this3 = this;
+
+      return new Promise(function (resolve, reject) {
+        var batch = _this3.database.batch();
+        for (var releaseId in releases) {
+          var ref = _this3.database.collection('collections').doc(username).collection('releases').doc(releaseId);
+          batch.set(ref, releases[releaseId]);
+        }
+        batch.commit().then(resolve).catch(reject);
+      });
+    }
+  }, {
     key: 'batchDelete',
     value: function batchDelete(user) {
-      var _this3 = this;
+      var _this4 = this;
 
       var batchSize = 20,
           query = this.database.collection('collections').doc(user.username).collection('releases').orderBy('__name__').limit(batchSize);
 
       return new Promise(function (resolve, reject) {
-        _this3._deleteQueryBatch(query, batchSize, resolve, reject);
+        _this4._deleteQueryBatch(query, batchSize, resolve, reject);
       });
     }
   }, {
     key: 'batchCreateReleases',
     value: function batchCreateReleases(releases) {
-      var _this4 = this;
+      var _this5 = this;
 
       return new Promise(function (resolve, reject) {
-        var batch = _this4.database.batch();
+        var batch = _this5.database.batch();
         for (var releaseId in releases) {
-          var ref = _this4.database.collection('releases').doc(releaseId);
+          var ref = _this5.database.collection('releases').doc(releaseId);
           batch.set(ref, releases[releaseId]);
         }
         batch.commit().then(resolve).catch(reject);
@@ -1148,36 +1318,36 @@ var Releases = function (_Adapter) {
   }, {
     key: 'getCollectionReleases',
     value: function getCollectionReleases(username) {
-      var _this5 = this;
+      var _this6 = this;
 
       return new Promise(function (resolve, reject) {
-        _this5.database.collection('collections').doc(username).collection('releases').get().then(function (snap) {
-          return resolve(_this5.documents(snap));
+        _this6.database.collection('collections').doc(username).collection('releases').get().then(function (snap) {
+          return resolve(_this6.documents(snap));
         }).catch(reject);
       });
     }
   }, {
     key: 'getReleases',
     value: function getReleases() {
-      var _this6 = this;
+      var _this7 = this;
 
       return new Promise(function (resolve, reject) {
-        _this6.database.collection('releases').get().then(function (snap) {
-          return resolve(_this6.documents(snap));
+        _this7.database.collection('releases').get().then(function (snap) {
+          return resolve(_this7.documents(snap));
         }).catch(reject);
       });
     }
   }, {
     key: '_deleteQueryBatch',
     value: function _deleteQueryBatch(query, batchSize, resolve, reject) {
-      var _this7 = this;
+      var _this8 = this;
 
       query.get().then(function (snapshot) {
         // When there are no documents left, we are done
         if (snapshot.size == 0) return 0;
 
         // Delete documents in a batch
-        var batch = _this7.database.batch();
+        var batch = _this8.database.batch();
         snapshot.docs.forEach(function (doc) {
           batch.delete(doc.ref);
         });
@@ -1194,7 +1364,7 @@ var Releases = function (_Adapter) {
         // Recurse on the next process tick, to avoid
         // exploding the stack.
         process.nextTick(function () {
-          _this7._deleteQueryBatch(query, batchSize, resolve, reject);
+          _this8._deleteQueryBatch(query, batchSize, resolve, reject);
         });
       }).catch(reject);
     }
@@ -1204,10 +1374,10 @@ var Releases = function (_Adapter) {
 }(_Adapter3.default);
 
 exports.default = Releases;
-/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(11)))
+/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(12)))
 
 /***/ }),
-/* 11 */
+/* 12 */
 /***/ (function(module, exports) {
 
 // shim for using process in browser
@@ -1397,7 +1567,7 @@ process.umask = function() { return 0; };
 
 
 /***/ }),
-/* 12 */
+/* 13 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -1468,7 +1638,7 @@ var Spotify = function (_Adapter) {
 exports.default = Spotify;
 
 /***/ }),
-/* 13 */
+/* 14 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -1527,7 +1697,7 @@ var Users = function (_Adapter) {
 exports.default = Users;
 
 /***/ }),
-/* 14 */
+/* 15 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -1539,19 +1709,23 @@ Object.defineProperty(exports, "__esModule", {
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
-var _Loading = __webpack_require__(15);
+var _Company = __webpack_require__(16);
+
+var _Company2 = _interopRequireDefault(_Company);
+
+var _Loading = __webpack_require__(17);
 
 var _Loading2 = _interopRequireDefault(_Loading);
 
-var _Release = __webpack_require__(16);
+var _Release = __webpack_require__(18);
 
 var _Release2 = _interopRequireDefault(_Release);
 
-var _Results = __webpack_require__(17);
+var _Results = __webpack_require__(19);
 
 var _Results2 = _interopRequireDefault(_Results);
 
-var _View = __webpack_require__(18);
+var _View = __webpack_require__(20);
 
 var _View2 = _interopRequireDefault(_View);
 
@@ -1567,6 +1741,7 @@ var Renderer = function () {
 
     this.store = store;
     this.view = new _View2.default(this);
+    this.company = new _Company2.default(this);
     this.loading = new _Loading2.default(this);
     this.results = new _Results2.default(this);
     this.release = new _Release2.default(this);
@@ -1577,6 +1752,8 @@ var Renderer = function () {
     this.$downloadStoreClick = document.querySelector('#download-store-click');
     this.$downloadStoreClick.setAttribute('download', this.store.localKey + '.json');
     this.$updateCollection = document.querySelector('#update-collection');
+    this.$clearLocal = document.querySelector('#clear-local');
+    this.$updateRecent = document.querySelector('#update-recent');
     this.$updateRelease = document.querySelector('#update-release');
     this.$randomRelease = document.querySelector('#random-release');
     this.$randomRelease.addEventListener('click', function () {
@@ -1585,10 +1762,19 @@ var Renderer = function () {
     if (this.store.app.masterUser) {
       this.$updateCollection.addEventListener('click', function () {
         if (window.confirm('This might take a bit, are you sure?')) {
-          _this.store.updateCollection().then(function () {
+          _this.store.writeCollection().then(function () {
             window.location.reload();
           });
         }
+      });
+      this.$updateRecent.addEventListener('click', function () {
+        _this.store.updateCollection().then(function () {
+          window.location.reload();
+        });
+      });
+      this.$clearLocal.addEventListener('click', function () {
+        _this.store._clearStore();
+        window.location.reload();
       });
       this.$updateRelease.addEventListener('click', function () {
         var id = _this.currResultId;
@@ -1600,8 +1786,10 @@ var Renderer = function () {
         _this.downloadStoreAsJSON();
       });
     } else {
+      this.$clearLocal.remove();
       this.$downloadStore.remove();
       this.$downloadStoreClick.remove();
+      this.$updateRecent.remove();
       this.$updateCollection.remove();
       this.$updateRelease.remove();
     }
@@ -1621,17 +1809,21 @@ var Renderer = function () {
   }, {
     key: 'setSearch',
     value: function setSearch() {
-      var _this2 = this;
-
+      this.$searchType = document.querySelector('#search-type');
       this.$search = document.querySelector('#search');
       this.$search.focus();
-      this.$search.addEventListener('input', function () {
-        var results = _this2.store.search(_this2.$search.value.replace(/ +$/, ''));
-        _this2.resultIds = [];
-        _this2.currResultIdx = -1;
-        _this2.results.render(results);
-        _this2.handleArrowDown();
-      });
+      this.$searchType.addEventListener('change', this.handleSearch.bind(this));
+      this.$search.addEventListener('input', this.handleSearch.bind(this));
+    }
+  }, {
+    key: 'handleSearch',
+    value: function handleSearch() {
+      var type = this.$searchType.checked ? 'company' : 'release',
+          results = this.store.search(this.$search.value.replace(/ +$/, ''), type);
+      this.resultIds = [];
+      this.currResultIdx = -1;
+      this.results.render(results, type);
+      this.handleArrowDown();
     }
   }, {
     key: 'handleArrowDown',
@@ -1646,6 +1838,7 @@ var Renderer = function () {
   }, {
     key: 'handleReturn',
     value: function handleReturn() {
+      if (this.results.itemType !== 'release') return;
       var id = this.currResultId;
       if (id) {
         this.viewOpen = !this.viewOpen;
@@ -1675,7 +1868,7 @@ var Renderer = function () {
         this.currResultIdx += adder;
         id = this.resultIds[this.currResultIdx];
         this.currResultId = id;
-        this.release.render(id);
+        if (this.results.itemType === 'release') this.release.render(id);else if (this.results.itemType === 'company') this.company.render(id);
       }
       this.results.setCurrent(id);
     }
@@ -1687,7 +1880,83 @@ var Renderer = function () {
 exports.default = Renderer;
 
 /***/ }),
-/* 15 */
+/* 16 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+var _CompanyAndRelease2 = __webpack_require__(1);
+
+var _CompanyAndRelease3 = _interopRequireDefault(_CompanyAndRelease2);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+var Company = function (_CompanyAndRelease) {
+  _inherits(Company, _CompanyAndRelease);
+
+  function Company() {
+    _classCallCheck(this, Company);
+
+    return _possibleConstructorReturn(this, (Company.__proto__ || Object.getPrototypeOf(Company)).apply(this, arguments));
+  }
+
+  _createClass(Company, [{
+    key: 'render',
+    value: function render(id) {
+      this.renderer.currResultId = id;
+      this.renderer.$search.focus();
+      this.renderer.$updateRelease.setAttribute('disabled', true);
+      this.company = this.store.companies[id];
+      this.$image.classList.add('hide');
+      this.$artist.classList.add('hide');
+      this.$meta.classList.add('hide');
+      this.$view.classList.add('hide');
+      this.$artistList.classList.add('hide');
+      this.$labelList.classList.add('hide');
+      this.renderMain();
+      this.renderLists();
+    }
+  }, {
+    key: 'renderLists',
+    value: function renderLists() {
+      var _this2 = this;
+
+      this.$companyList.innerHTML = '';
+      this.company.types.forEach(function (type) {
+        var companyRole = type + '-' + _this2.company.id,
+            ids = _this2.store.categorized.companies[companyRole];
+        if (ids) {
+          _this2.renderList(_this2.$companyList, _this2.company.name, ids, true, [], type);
+        }
+      });
+    }
+  }, {
+    key: 'renderMain',
+    value: function renderMain() {
+      this.$title.innerHTML = '<a href="https://www.discogs.com/label/' + this.company.id + '" target="blank">\n      ' + this.company.name.replace(/ ([^ ]+)$/, '&nbsp;$1') + '\n    </a>';
+    }
+  }]);
+
+  return Company;
+}(_CompanyAndRelease3.default);
+
+exports.default = Company;
+
+/***/ }),
+/* 17 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -1738,7 +2007,7 @@ var Loading = function () {
 exports.default = Loading;
 
 /***/ }),
-/* 16 */
+/* 18 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -1750,24 +2019,25 @@ Object.defineProperty(exports, "__esModule", {
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
+var _CompanyAndRelease2 = __webpack_require__(1);
+
+var _CompanyAndRelease3 = _interopRequireDefault(_CompanyAndRelease2);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
-var Release = function () {
-  function Release(renderer) {
+function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+var Release = function (_CompanyAndRelease) {
+  _inherits(Release, _CompanyAndRelease);
+
+  function Release() {
     _classCallCheck(this, Release);
 
-    this.renderer = renderer;
-    this.store = renderer.store;
-    this.$container = document.querySelector('#details');
-    this.$ul = this.$container.querySelector('ul');
-    this.$image = this.$container.querySelector('.image');
-    this.$title = this.$container.querySelector('.title');
-    this.$artist = this.$container.querySelector('.artist');
-    this.$meta = this.$container.querySelector('.meta');
-    this.$view = this.$container.querySelector('.view');
-    this.$artistList = document.querySelector('.artist-list');
-    this.$labelList = document.querySelector('.label-list');
-    this.$companyList = document.querySelector('.company-list');
+    return _possibleConstructorReturn(this, (Release.__proto__ || Object.getPrototypeOf(Release)).apply(this, arguments));
   }
 
   _createClass(Release, [{
@@ -1775,7 +2045,14 @@ var Release = function () {
     value: function render(id) {
       this.renderer.currResultId = id;
       this.renderer.$search.focus();
+      this.renderer.$updateRelease.removeAttribute('disabled');
       this.release = this.store._.releases[id];
+      this.$image.classList.remove('hide');
+      this.$artist.classList.remove('hide');
+      this.$meta.classList.remove('hide');
+      this.$view.classList.remove('hide');
+      this.$artistList.classList.remove('hide');
+      this.$labelList.classList.remove('hide');
       this.renderMain();
       this.renderMeta();
       this.renderButton();
@@ -1784,25 +2061,25 @@ var Release = function () {
   }, {
     key: 'renderLists',
     value: function renderLists() {
-      var _this = this;
+      var _this2 = this;
 
       var used = [this.release.id];
       this.$artistList.innerHTML = '';
       Object.values(this.release.artists).forEach(function (artist) {
-        var ids = _this.store.categorized.artist[artist.name];
-        if (ids) _this.renderList(_this.$artistList, artist.name, ids, false, used);
+        var ids = _this2.store.categorized.artist[artist.name];
+        if (ids) _this2.renderList(_this2.$artistList, artist.name, ids, false, used);
       });
       this.$labelList.innerHTML = '';
       Object.values(this.release.labels).forEach(function (label) {
-        var ids = _this.store.categorized.label[label.name];
-        if (ids) _this.renderList(_this.$labelList, label.name, ids, true, used, 'Label');
+        var ids = _this2.store.categorized.companies['Label-' + label.id];
+        if (ids) _this2.renderList(_this2.$labelList, label.name, ids, true, used, 'Label');
       });
       this.$companyList.innerHTML = '';
       Object.values(this.release.companies).forEach(function (company) {
-        var companyRole = company.type + '-' + company.name,
-            ids = _this.store.categorized.companies[companyRole];
+        var companyRole = company.type + '-' + company.id,
+            ids = _this2.store.categorized.companies[companyRole];
         if (ids) {
-          _this.renderList(_this.$companyList, company.name, ids, true, used, company.type);
+          _this2.renderList(_this2.$companyList, company.name, ids, true, used, company.type);
         }
       });
     }
@@ -1829,7 +2106,7 @@ var Release = function () {
   }, {
     key: 'renderButton',
     value: function renderButton() {
-      var _this2 = this;
+      var _this3 = this;
 
       this.$view.innerHTML = '';
       var $button = document.createElement('button');
@@ -1838,74 +2115,19 @@ var Release = function () {
       $button.classList.add('is-small');
       $button.innerHTML = 'View';
       $button.addEventListener('click', function () {
-        _this2.renderer.handleReturn();
+        _this3.renderer.handleReturn();
       });
       this.$view.appendChild($button);
-    }
-  }, {
-    key: 'renderList',
-    value: function renderList($list, title, ids, includeArtist) {
-      var _this3 = this;
-
-      var used = arguments.length > 4 && arguments[4] !== undefined ? arguments[4] : [];
-      var listType = arguments.length > 5 && arguments[5] !== undefined ? arguments[5] : null;
-
-      var $ul = void 0,
-          rendered = false;
-      ids.forEach(function (id) {
-        if (!used.includes(id)) {
-          if (!rendered) {
-            var $p = document.createElement('p');
-            $p.innerHTML = listType ? listType + ': ' + title : title;
-            $list.appendChild($p);
-            $ul = document.createElement('ul');
-            $list.appendChild($ul);
-            rendered = true;
-          }
-          var release = _this3.store._.releases[id],
-              $li = document.createElement('li'),
-              $a = document.createElement('a');
-          $a.setAttribute('href', '#');
-          $li.appendChild($a);
-          $a.addEventListener('click', function (e) {
-            e.preventDefault();
-            _this3.render(release.id);
-          });
-          var year = release.year > 1900 ? release.year : '',
-              image = release.images ? release.images[0] : null;
-          if (image) $a.innerHTML += '<div class="image" style="background-image: url(\'' + image.uri + '\')"></div>';else $a.innerHTML += '<div class="image"></div>';
-          if (includeArtist) {
-            var artist = Object.values(release.artists).map(function (a) {
-              return a.name;
-            }).join(', ');
-            title = release.title;
-            artist = _this3.truncatedString(artist);
-            title = _this3.truncatedString(title);
-            $a.innerHTML += '<div><span><span>' + title + '</span><span>' + year + '</span></span><span>' + artist + '</span></div>';
-          } else {
-            var _title = release.title;
-            _title = _this3.truncatedString(_title);
-            $a.innerHTML += '<div><span><span>' + _title + '</span><span>' + year + '</span></span></div>';
-          }
-          $ul.appendChild($li);
-        }
-      });
-    }
-  }, {
-    key: 'truncatedString',
-    value: function truncatedString(string) {
-      if (string.length <= 27) return string;
-      return string.substring(0, 27).replace(/ +$/, '') + '\u2026';
     }
   }]);
 
   return Release;
-}();
+}(_CompanyAndRelease3.default);
 
 exports.default = Release;
 
 /***/ }),
-/* 17 */
+/* 19 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -1941,9 +2163,10 @@ var Results = function () {
     }
   }, {
     key: 'render',
-    value: function render(results) {
+    value: function render(results, type) {
       var _this = this;
 
+      this.itemType = type;
       this.currResultIdx = -1;
       this.$container.innerHTML = '';
       if (!results) return;
@@ -1955,10 +2178,11 @@ var Results = function () {
             $a = document.createElement('a');
         _this.renderer.resultIds.push(result.item.id);
         $li.classList.add('release-' + result.item.id);
-        $a.innerHTML = _this.renderResult(result);
+        $a.innerHTML = _this.itemType === 'release' ? _this.renderRelease(result) : _this.renderCompany(result);
         $a.setAttribute('href', '#');
         $a.setAttribute('tabindex', '-1');
         $a.addEventListener('click', function (e) {
+          _this.renderer.results.itemType = type;
           e.preventDefault();
           $a.blur();
           _this.renderer.$search.focus();
@@ -1973,8 +2197,8 @@ var Results = function () {
       }
     }
   }, {
-    key: 'renderResult',
-    value: function renderResult(result, type) {
+    key: 'renderRelease',
+    value: function renderRelease(result) {
       var _this2 = this;
 
       var matches = {};
@@ -1988,6 +2212,21 @@ var Results = function () {
       html += '\n      <div class="title">';
       if (matches.artistTitle) html += matches.artistTitle;else html += result.item.artist + ': ' + result.item.title;
       html += '\n        ' + (result.item.year > 1900 ? '(' + result.item.year + ')' : '') + '\n      </div>\n      <div class="format">\n        ' + result.item.format + '\n      </div>';
+      return html;
+    }
+  }, {
+    key: 'renderCompany',
+    value: function renderCompany(result) {
+      var _this3 = this;
+
+      var matches = {};
+      result.matches.forEach(function (match) {
+        matches[match.key] = _this3.renderMatch(match);
+      });
+      var release = this.store.companies[result.item.id],
+          html = '\n      <div class="title">';
+      if (matches.name) html += matches.name;else html += result.item.name;
+      html += '\n      </div>\n      <div class="format">\n        ' + result.item.types.join(', ') + '\n      </div>';
       return html;
     }
   }, {
@@ -2037,7 +2276,7 @@ var Results = function () {
 exports.default = Results;
 
 /***/ }),
-/* 18 */
+/* 20 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";

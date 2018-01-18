@@ -1,3 +1,4 @@
+import Company from './Company';
 import Loading from './Loading';
 import Release from './Release';
 import Results from './Results';
@@ -7,6 +8,7 @@ export default class Renderer {
   constructor(store) {
     this.store = store;
     this.view = new View(this);
+    this.company = new Company(this);
     this.loading = new Loading(this);
     this.results = new Results(this);
     this.release = new Release(this);
@@ -20,6 +22,8 @@ export default class Renderer {
       `${this.store.localKey}.json`
     );
     this.$updateCollection = document.querySelector('#update-collection');
+    this.$clearLocal = document.querySelector('#clear-local');
+    this.$updateRecent = document.querySelector('#update-recent');
     this.$updateRelease = document.querySelector('#update-release');
     this.$randomRelease = document.querySelector('#random-release');
     this.$randomRelease.addEventListener('click', () => {
@@ -28,10 +32,19 @@ export default class Renderer {
     if (this.store.app.masterUser) {
       this.$updateCollection.addEventListener('click', () => {
         if (window.confirm('This might take a bit, are you sure?')) {
-          this.store.updateCollection().then(() => {
+          this.store.writeCollection().then(() => {
             window.location.reload();
           });
         }
+      });
+      this.$updateRecent.addEventListener('click', () => {
+        this.store.updateCollection().then(() => {
+          window.location.reload();
+        });
+      });
+      this.$clearLocal.addEventListener('click', () => {
+        this.store._clearStore();
+        window.location.reload();
       });
       this.$updateRelease.addEventListener('click', () => {
         let id = this.currResultId;
@@ -45,8 +58,10 @@ export default class Renderer {
         this.downloadStoreAsJSON();
       });
     } else {
+      this.$clearLocal.remove();
       this.$downloadStore.remove();
       this.$downloadStoreClick.remove();
+      this.$updateRecent.remove();
       this.$updateCollection.remove();
       this.$updateRelease.remove();
     }
@@ -70,15 +85,20 @@ export default class Renderer {
   }
 
   setSearch() {
+    this.$searchType = document.querySelector('#search-type');
     this.$search = document.querySelector('#search');
     this.$search.focus();
-    this.$search.addEventListener('input', () => {
-      let results = this.store.search(this.$search.value.replace(/ +$/, ''));
-      this.resultIds = [];
-      this.currResultIdx = -1;
-      this.results.render(results);
-      this.handleArrowDown();
-    });
+    this.$searchType.addEventListener('change', this.handleSearch.bind(this));
+    this.$search.addEventListener('input', this.handleSearch.bind(this));
+  }
+
+  handleSearch() {
+    let type = this.$searchType.checked ? 'company' : 'release',
+      results = this.store.search(this.$search.value.replace(/ +$/, ''), type);
+    this.resultIds = [];
+    this.currResultIdx = -1;
+    this.results.render(results, type);
+    this.handleArrowDown();
   }
 
   handleArrowDown() {
@@ -91,6 +111,7 @@ export default class Renderer {
   }
 
   handleReturn() {
+    if (this.results.itemType !== 'release') return;
     let id = this.currResultId;
     if (id) {
       this.viewOpen = !this.viewOpen;
@@ -117,7 +138,8 @@ export default class Renderer {
       this.currResultIdx += adder;
       id = this.resultIds[this.currResultIdx];
       this.currResultId = id;
-      this.release.render(id);
+      if (this.results.itemType === 'release') this.release.render(id);
+      else if (this.results.itemType === 'company') this.company.render(id);
     }
     this.results.setCurrent(id);
   }

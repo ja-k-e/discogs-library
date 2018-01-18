@@ -22,6 +22,24 @@ export default class Releases extends Adapter {
     });
   }
 
+  batchUpdateCollectionReleases(releases, username) {
+    return new Promise((resolve, reject) => {
+      let batch = this.database.batch();
+      for (let releaseId in releases) {
+        let ref = this.database
+          .collection('collections')
+          .doc(username)
+          .collection('releases')
+          .doc(releaseId);
+        batch.set(ref, releases[releaseId]);
+      }
+      batch
+        .commit()
+        .then(resolve)
+        .catch(reject);
+    });
+  }
+
   batchDelete(user) {
     let batchSize = 20,
       query = this.database

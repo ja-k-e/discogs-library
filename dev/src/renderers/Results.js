@@ -15,7 +15,8 @@ export default class Results {
     }
   }
 
-  render(results) {
+  render(results, type) {
+    this.itemType = type;
     this.currResultIdx = -1;
     this.$container.innerHTML = '';
     if (!results) return;
@@ -26,10 +27,14 @@ export default class Results {
         $a = document.createElement('a');
       this.renderer.resultIds.push(result.item.id);
       $li.classList.add(`release-${result.item.id}`);
-      $a.innerHTML = this.renderResult(result);
+      $a.innerHTML =
+        this.itemType === 'release'
+          ? this.renderRelease(result)
+          : this.renderCompany(result);
       $a.setAttribute('href', '#');
       $a.setAttribute('tabindex', '-1');
       $a.addEventListener('click', e => {
+        this.renderer.results.itemType = type;
         e.preventDefault();
         $a.blur();
         this.renderer.$search.focus();
@@ -40,7 +45,7 @@ export default class Results {
     }
   }
 
-  renderResult(result, type) {
+  renderRelease(result) {
     let matches = {};
     result.matches.forEach(match => {
       matches[match.key] = this.renderMatch(match);
@@ -60,6 +65,24 @@ export default class Results {
       </div>
       <div class="format">
         ${result.item.format}
+      </div>`;
+    return html;
+  }
+
+  renderCompany(result) {
+    let matches = {};
+    result.matches.forEach(match => {
+      matches[match.key] = this.renderMatch(match);
+    });
+    let release = this.store.companies[result.item.id],
+      html = `
+      <div class="title">`;
+    if (matches.name) html += matches.name;
+    else html += result.item.name;
+    html += `
+      </div>
+      <div class="format">
+        ${result.item.types.join(', ')}
       </div>`;
     return html;
   }

@@ -35,17 +35,23 @@
       </div>
     </div>
     <div>
-      <button id="random-release" type="button" tabindex="2">
-        Random
+      <button id="random-release" type="button" tabindex="2" class="is-small" title="Selects a random Release">
+        Random Release
       </button>
-      <button id="update-release" type="button" tabindex="2">
-        Update
+      <button id="update-release" type="button" tabindex="2" class="is-small" title="Updates the current Release and tries to find a Spotify album.">
+        Update Release
       </button>
-      <button id="download-store" type="button" tabindex="2" class="is-black">
+      <button id="update-recent" type="button" tabindex="2" class="is-small" title="Grabs last 20 items from Discogs.">
+        Sync Recent
+      </button>
+      <button id="clear-local" type="button" tabindex="2" class="is-black is-small" title="Clears localStorage and reloads from Firestore.">
+        Clear
+      </button>
+      <button id="download-store" type="button" tabindex="2" class="is-black is-small" title="Downloads the current data as JSON.">
         JSON
       </button>
-      <button id="update-collection" type="button" tabindex="2" class="is-black is-small">
-        Update Collection
+      <button id="update-collection" type="button" tabindex="2" class="is-black is-small" title="Grabs your entire Collection from Discogs.">
+        Update All
       </button>
       <a id="download-store-click" style="display:none"></a>
     </div>
@@ -54,6 +60,12 @@
     <nav>
       <div>
         <input type="search" id="search" tabindex="1" placeholder="Search" title="shortcut: move through results with arrow keys" />
+      </div>
+      <div>
+        <label for="search-type" class="toggle">
+          <input type="checkbox" id="search-type" />
+          <span on="Company" off="Release"></span>
+        </label>
       </div>
     </nav>
     <section>

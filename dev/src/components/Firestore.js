@@ -74,6 +74,18 @@ export default class Firestore {
     });
   }
 
+  updateCollection(response, username) {
+    return new Promise((resolve, reject) => {
+      if (response.status !== 200) reject(response);
+      let { status, data } = response;
+      let { releases } = data;
+      Adapters.Releases
+        .batchUpdateCollectionReleases(releases, username)
+        .then(resolve)
+        .catch(reject);
+    });
+  }
+
   writeReleases(response) {
     return new Promise((resolve, reject) => {
       if (response.status !== 200) reject(response);

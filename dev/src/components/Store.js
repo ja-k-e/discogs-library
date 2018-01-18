@@ -133,7 +133,7 @@ export default class Store {
     });
   }
 
-  updateCollection() {
+  writeCollection() {
     this.renderer.loading.enable();
     this.renderer.loading.message('Getting Collection from Discogs');
     return new Promise((resolve, reject) => {
@@ -145,6 +145,27 @@ export default class Store {
             .writeCollection(data)
             .then(data => {
               this.renderer.loading.message('Wrote Collection to Database');
+              this._clearStore();
+              resolve();
+            })
+            .catch(reject);
+        })
+        .catch(reject);
+    });
+  }
+
+  updateCollection() {
+    this.renderer.loading.enable();
+    this.renderer.loading.message('Getting Recent Releases from Discogs');
+    return new Promise((resolve, reject) => {
+      this.webtask
+        .getRecent()
+        .then(data => {
+          this.renderer.loading.message('Writing Releases to Database');
+          this.firestore
+            .updateCollection(data, this._.user.username)
+            .then(data => {
+              this.renderer.loading.message('Wrote Releases to Database');
               this._clearStore();
               resolve();
             })
@@ -284,11 +305,14 @@ export default class Store {
   }
 
   process() {
-    this.searchable = Object.values(this._.collectionReleases).map(
+    this.searchableReleases = Object.values(this._.collectionReleases).map(
       this._searchableRelease.bind(this)
     );
     this._categorizeReleases(this._.collectionReleases);
-    this.fuseSearch = new Fuse(this.searchable, {
+
+    this.searchableCompanies = Object.values(this.companies);
+
+    this.fuseReleaseSearch = new Fuse(this.searchableReleases, {
       shouldSort: true,
       includeMatches: true,
       tokenize: true,
@@ -298,10 +322,27 @@ export default class Store {
       location: 0,
       distance: 100,
       maxPatternLength: 32,
-      minMatchCharLength: 3,
+      minMatchCharLength: 2,
       keys: ['artistTitle']
     });
+    this.fuseCompanySearch = new Fuse(this.searchableCompanies, {
+      shouldSort: true,
+      includeMatches: true,
+      tokenize: true,
+      matchAllTokens: true,
+      findAllMatches: true,
+      threshold: 0.3,
+      location: 0,
+      distance: 100,
+      maxPatternLength: 32,
+      minMatchCharLength: 2,
+      keys: ['name']
+    });
     this.randomRelease();
+    this.detectMissingSpotify();
+  }
+
+  detectMissingSpotify() {
     let ids = Object.keys(this._.spotify);
     let missing = Object.values(this._.collectionReleases).filter(
       i => !ids.includes(i.id)
@@ -320,14 +361,17 @@ export default class Store {
   randomRelease() {
     let ids = Object.keys(this._.releases),
       id = ids[Math.floor(Math.random() * ids.length)];
+    this.renderer.results.itemType = 'release';
     this.renderer.currResultId = id;
     this.renderer.release.render(id);
   }
 
-  search(term) {
-    if (!this.fuseSearch) return null;
+  search(term, type) {
+    if (!this.fuseReleaseSearch) return null;
     if (!term) return null;
-    return this.fuseSearch.search(term);
+    let search =
+      type === 'release' ? this.fuseReleaseSearch : this.fuseCompanySearch;
+    return search.search(term);
   }
 
   _time(seconds) {
@@ -361,6 +405,10 @@ export default class Store {
       .join(', ');
     response.artistTitle = response.artist + ': ' + response.title;
     response.folder = this._.collectionFolders[collectionRelease.folderId].name;
+    response.companies = Object.values(release.labels)
+      .concat(Object.values(release.companies))
+      .map(c => c.name)
+      .join(', ');
     let formats = {};
     release.formats.forEach(format => (formats[format.name] = 1));
     response.format = Object.keys(formats).join(', ');
@@ -369,6 +417,7 @@ export default class Store {
 
   _categorizeReleases(collectionReleases) {
     this.categorized = { artist: {}, label: {}, companies: {} };
+    this.companies = {};
     Object.values(collectionReleases).forEach(collectionRelease => {
       let release = this._.releases[collectionRelease.id];
       Object.values(release.artists).forEach(artist => {
@@ -378,17 +427,24 @@ export default class Store {
           this.categorized.artist[name].push(release.id);
         }
       });
-      Object.values(release.labels).forEach(label => {
-        let name = label.name;
-        this.categorized.label[name] = this.categorized.label[name] || [];
-        this.categorized.label[name].push(release.id);
-      });
-      Object.values(release.companies).forEach(company => {
-        let name = `${company.type}-${company.name}`;
-        this.categorized.companies[name] =
-          this.categorized.companies[name] || [];
-        this.categorized.companies[name].push(release.id);
-      });
+      Object.values(release.labels)
+        .concat(Object.values(release.companies))
+        .forEach(company => {
+          let key = `${company.type}-${company.id}`,
+            existing = this.companies[company.id];
+          if (existing) {
+            if (!existing.types.includes(company.type))
+              existing.types.push(company.type);
+          } else
+            this.companies[company.id] = {
+              id: company.id,
+              name: company.name,
+              types: [company.type]
+            };
+          this.categorized.companies[key] =
+            this.categorized.companies[key] || [];
+          this.categorized.companies[key].push(release.id);
+        });
     });
   }
 }
