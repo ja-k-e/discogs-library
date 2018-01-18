@@ -27,7 +27,7 @@ You will need:
 ## You
 When authorized through Firebase, you have the ability to maintain your data. You authorize using Google by visiting `YOURAPP.com?authorize=true`
 
-On first load or whenever you want to update your Collection, you will hit "Update Collection" which will go through the following flow:
+On first load or whenever you want to update your Collection, you will hit "Update All" which will go through the following flow:
 
   1. Calls the Webtask `discogs-collection` function, which returns your User, Folders, and the limited Release data
   1. Overwrites `user`, `username/*` in your Firestore database (leaves `releases` untouched)
@@ -138,7 +138,7 @@ The public view will show your Collection via the JSON file without having any A
 - Run `gulp` from the app root
 - Open [localhost:8000?authenticate=true](http://localhost:8000?authenticate=true)
 - Authenticate with your Google account
-- Click 'Update Collection' and leave your browser open while it goes through the flow described above in [Data Structure](#data-structure).
+- Click 'Update All' and leave your browser open while it goes through the flow described above in [Data Structure](#data-structure).
 
 # Navigating the App
 - Up and down arrows will navigate through the search results
