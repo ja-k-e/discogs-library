@@ -1,6 +1,7 @@
 const //
   discogsCollection = `https://wt-3cbd5efe1e55015be8738859f4791dfe-0.run.webtask.io/discogs-collection`,
   discogsReleases = `https://wt-3cbd5efe1e55015be8738859f4791dfe-0.run.webtask.io/discogs-releases`,
+  discogsCollectionRecent = `https://wt-3cbd5efe1e55015be8738859f4791dfe-0.run.webtask.io/discogs-collection-recent`,
   spotifySearch =
     'https://wt-3cbd5efe1e55015be8738859f4791dfe-0.run.webtask.io/spotify-search';
 
@@ -23,6 +24,15 @@ export default class Webtask {
     return new Promise((resolve, reject) => {
       axios
         .get(discogsCollection, { params: { full: true } })
+        .then(resolve)
+        .catch(reject);
+    });
+  }
+
+  getRecent() {
+    return new Promise((resolve, reject) => {
+      axios
+        .get(discogsCollectionRecent, { params: {} })
         .then(resolve)
         .catch(reject);
     });

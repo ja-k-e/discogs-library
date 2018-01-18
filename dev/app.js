@@ -122,6 +122,7 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 var //
 discogsCollection = 'https://wt-3cbd5efe1e55015be8738859f4791dfe-0.run.webtask.io/discogs-collection',
     discogsReleases = 'https://wt-3cbd5efe1e55015be8738859f4791dfe-0.run.webtask.io/discogs-releases',
+    discogsCollectionRecent = 'https://wt-3cbd5efe1e55015be8738859f4791dfe-0.run.webtask.io/discogs-collection-recent',
     spotifySearch = 'https://wt-3cbd5efe1e55015be8738859f4791dfe-0.run.webtask.io/spotify-search';
 
 var Webtask = function () {
@@ -144,6 +145,13 @@ var Webtask = function () {
     value: function getCollection() {
       return new Promise(function (resolve, reject) {
         axios.get(discogsCollection, { params: { full: true } }).then(resolve).catch(reject);
+      });
+    }
+  }, {
+    key: 'getRecent',
+    value: function getRecent() {
+      return new Promise(function (resolve, reject) {
+        axios.get(discogsCollectionRecent, { params: {} }).then(resolve).catch(reject);
       });
     }
   }, {
