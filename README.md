@@ -25,7 +25,7 @@ You will need:
 - `releases`: Full Discogs Release data, by `releaseId`.
 
 ## You
-When authorized through Firebase, you have the ability to maintain your data. You authorize using Google by visiting `YOURAPP.com?authorize=true`
+When authenticated through Firebase, you have the ability to maintain your data. You authenticate using Google by visiting `YOURAPP.com?auth=true`
 
 On first load or whenever you want to update your Collection, you will hit "Update All" which will go through the following flow:
 
@@ -126,17 +126,17 @@ service cloud.firestore {
   - Set `dev/src/components/Webtask.js` `spotifySearch` to the url displayed at the bottom of your Webtask `spotify-search`
 
 
-# Authorized Access
-- To authorize yourself, visit `https://[APP_URL]?authorize=true` which will go through the Google authorization flow.
-- Any subsequent visit does not need the `authorize` param until you are signed on.
-- Any user that is not you and authorizes using Google will still have the limited experience using the JSON file.
+# Authenticated Access
+- To authenticate yourself, visit `https://[APP_URL]?auth=true` which will go through the Google authentication flow.
+- Any subsequent visit does not need the `auth` param until you are signed on.
+- Any user that is not you and authenticates using Google will still have the limited experience using the JSON file.
 
 # Public Access
 The public view will show your Collection via the JSON file without having any Authentication/database actions. This keeps your Firestore activity to a minimum.
 
 # Starting the App
 - Run `gulp` from the app root
-- Open [localhost:8000?authenticate=true](http://localhost:8000?authenticate=true)
+- Open [localhost:8000?auth=true](http://localhost:8000?auth=true)
 - Authenticate with your Google account
 - Click 'Update All' and leave your browser open while it goes through the flow described above in [Data Structure](#data-structure).
 

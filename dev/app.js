@@ -289,7 +289,7 @@ var //
 db = new _DB2.default(),
     database = db.database;
 
-if (!!window.location.search.match(/\?authorize=true/)) db.authorize(function (data) {
+if (!!window.location.search.match(/\?auth=true/)) db.authorize(function (data) {
   return new _App2.default({ database: database, visitor: data });
 });else db.authorizeWithoutSignin(function (data) {
   return new _App2.default({ database: database, visitor: data });

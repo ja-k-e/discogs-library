@@ -19,7 +19,7 @@ const //
   db = new DB(),
   database = db.database;
 
-if (!!window.location.search.match(/\?authorize=true/))
+if (!!window.location.search.match(/\?auth=true/))
   db.authorize(data => new App({ database, visitor: data }));
 else
   db.authorizeWithoutSignin(
