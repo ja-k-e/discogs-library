@@ -128,7 +128,7 @@ service cloud.firestore {
 
 # Authenticated Access
 - To authenticate yourself, visit `https://[APP_URL]?auth=true` which will go through the Google authentication flow.
-- Any subsequent visit does not need the `auth` param until you are signed on.
+- Any subsequent visit does not need the `auth` param until you are signed out.
 - Any user that is not you and authenticates using Google will still have the limited experience using the JSON file.
 
 # Public Access
