@@ -43,6 +43,14 @@ On first load or whenever you want to update your Collection, you will hit "Upda
       1. It clears your `localStorage`
       1. Upon completion, it reloads the app
 
+You can also do a quick update of the latest 20 releases you added to your collection (new Releases might change often on Discogs).
+
+  1. Hit "Sync Recent" button
+  1. It calls the Webtask `discogs-collection-recent` function
+  1. It takes the 20 recent Releases from Webtask and writes them to Firestore
+  1. It clears your `localStorage`, next page load will come from Firestore.
+  1. It updates your app view.
+
 On app load, it will check to see if it has the data it needs in `localStorage`.
 
   1. If data is saved to `localStorage`, it loads your data from there.
@@ -50,7 +58,7 @@ On app load, it will check to see if it has the data it needs in `localStorage`.
 
 You can update a single Release at any time (new Releases might change often on Discogs).
 
-  1. Hit "Update" button for the current Release in app
+  1. Hit "Update Release" button for the current Release in app
   1. It calls the Webtask `discogs-releases` function for the single `releaseId`
   1. It takes that Release from Webtask and writes it to Firestore
   1. It clears your `localStorage`, next page load will come from Firestore.
@@ -101,6 +109,11 @@ service cloud.firestore {
   - Add your Discogs `userToken` and `userUsername` to the [Webtask secrets](https://webtask.io/docs/editor/secrets)
   - Add the `disconnect` npm module to `discogs-collection` via `Settings > NPM Modules`
   - Set `dev/src/components/Webtask.js` `discogsCollection` to the url displayed at the bottom of this Webtask
+- Create a new task called `discogs-collection-recent`
+  - Sync it with the Github repo's `functions/discogs-collection-recent.js`.
+  - Add your Discogs `userToken` and `userUsername` to the [Webtask secrets](https://webtask.io/docs/editor/secrets)
+  - Add the `disconnect` npm module to `discogs-collection` via `Settings > NPM Modules`
+  - Set `dev/src/components/Webtask.js` `discogsCollectionRecent` to the url displayed at the bottom of this Webtask
 - Create a new task called `discogs-releases`
   - Sync it with the Github repo's `functions/discogs-releases.js`.
   - Add your Discogs `userToken` to the [Webtask secrets](https://webtask.io/docs/editor/secrets)
