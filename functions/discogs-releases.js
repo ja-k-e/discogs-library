@@ -78,6 +78,7 @@ function formattedArtists(data) {
 }
 
 function formattedImages(images) {
+  if (!images) return {};
   return images.map(function(image) {
     return {
       uri: image.uri,
@@ -88,6 +89,7 @@ function formattedImages(images) {
 }
 
 function formattedTracklist(tracklist) {
+  if (!tracklist) return {};
   return tracklist.map(function(track) {
     return {
       position: track.position,
@@ -98,6 +100,7 @@ function formattedTracklist(tracklist) {
 }
 
 function formattedLabels(data) {
+  if (!data) return {};
   var labels = {};
   data.forEach(function(label) {
     var object = {
@@ -112,6 +115,7 @@ function formattedLabels(data) {
 }
 
 function formattedFormats(format) {
+  if (!format) return {};
   return {
     quantity: format.qty,
     name: format.name,
