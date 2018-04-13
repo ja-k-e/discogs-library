@@ -1,8 +1,7 @@
 {
   "name": "discogs-library",
   "version": "1.0.0",
-  "description":
-    "Browsing your Discogs library, if yer super cool. Meant to be placed neatly next to your record player.",
+  "description": "Browsing your Discogs library, if yer super cool. Meant to be placed neatly next to your record player.",
   "main": "prod/app.js",
   "repository": "https://github.com/jakealbaugh/discogs-library",
   "dependencies": {},
