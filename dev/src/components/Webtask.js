@@ -1,9 +1,9 @@
 const //
-  discogsCollection = `https://wt-3cbd5efe1e55015be8738859f4791dfe-0.run.webtask.io/discogs-collection`,
-  discogsReleases = `https://wt-3cbd5efe1e55015be8738859f4791dfe-0.run.webtask.io/discogs-releases`,
-  discogsCollectionRecent = `https://wt-3cbd5efe1e55015be8738859f4791dfe-0.run.webtask.io/discogs-collection-recent`,
-  spotifySearch =
-    'https://wt-3cbd5efe1e55015be8738859f4791dfe-0.run.webtask.io/spotify-search';
+  r = 'https://wt-3cbd5efe1e55015be8738859f4791dfe-0.sandbox.auth0-extend.com',
+  discogsCollection = `${r}/discogs-collection`,
+  discogsReleases = `${r}/discogs-collection-recent`,
+  discogsCollectionRecent = `${r}/discogs-collection-recent`,
+  spotifySearch = `${r}/spotify-search`;
 
 export default class Webtask {
   constructor() {}
