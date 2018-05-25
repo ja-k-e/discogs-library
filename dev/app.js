@@ -218,7 +218,7 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 var //
 r = 'https://wt-3cbd5efe1e55015be8738859f4791dfe-0.sandbox.auth0-extend.com',
     discogsCollection = r + '/discogs-collection',
-    discogsReleases = r + '/discogs-collection-recent',
+    discogsReleases = r + '/discogs-releases',
     discogsCollectionRecent = r + '/discogs-collection-recent',
     spotifySearch = r + '/spotify-search';
 
