@@ -1,8 +1,8 @@
-import Firestore from './Firestore';
-import Renderer from '../renderers/Renderer';
-import Webtask from './Webtask';
+import Firestore from "./Firestore";
+import Renderer from "../renderers/Renderer";
+import Webtask from "./Webtask";
 
-const LOCAL_KEY = 'discogs-library-0.1',
+const LOCAL_KEY = "discogs-library-0.1",
   BATCH_SIZE = 10,
   BATCH_SECONDS = 15;
 
@@ -51,8 +51,8 @@ export default class Store {
       if (this._.spotify[id]) {
         resolve(this._.spotify[id].id);
         return;
-      } else if (this._.spotify[id] === '') {
-        resolve('');
+      } else if (this._.spotify[id] === "") {
+        resolve("");
         return;
       }
 
@@ -64,7 +64,7 @@ export default class Store {
             resolve(album.id);
           } else {
             // Try searching without ending parens
-            let title2 = title.replace(/ \([^\)]+\)$/, '');
+            let title2 = title.replace(/ \([^\)]+\)$/, "");
             this.webtask
               .searchSpotify(artist, title2)
               .then(response => {
@@ -80,7 +80,7 @@ export default class Store {
                       if (album) {
                         resolve(album.id);
                       } else {
-                        resolve('');
+                        resolve("");
                       }
                     })
                     .catch(reject);
@@ -106,7 +106,7 @@ export default class Store {
   getAllDataFromFirebase() {
     return new Promise((resolve, reject) => {
       this.renderer.loading.enable();
-      this.renderer.loading.message('Getting Collection from Database');
+      this.renderer.loading.message("Getting Collection from Database");
       this.firestore
         .getAllData()
         .then(data => {
@@ -121,7 +121,7 @@ export default class Store {
   loadAllDataFromJSON() {
     return new Promise((resolve, reject) => {
       this.renderer.loading.enable();
-      this.renderer.loading.message('Loading Data');
+      this.renderer.loading.message("Loading Data");
       axios
         .get(`data/${LOCAL_KEY}.json`, {})
         .then(data => {
@@ -135,16 +135,16 @@ export default class Store {
 
   writeCollection() {
     this.renderer.loading.enable();
-    this.renderer.loading.message('Getting Collection from Discogs');
+    this.renderer.loading.message("Getting Collection from Discogs");
     return new Promise((resolve, reject) => {
       this.webtask
         .getCollection()
         .then(data => {
-          this.renderer.loading.message('Writing Collection to Database');
+          this.renderer.loading.message("Writing Collection to Database");
           this.firestore
             .writeCollection(data)
             .then(data => {
-              this.renderer.loading.message('Wrote Collection to Database');
+              this.renderer.loading.message("Wrote Collection to Database");
               this._clearStore();
               resolve();
             })
@@ -156,16 +156,16 @@ export default class Store {
 
   updateCollection() {
     this.renderer.loading.enable();
-    this.renderer.loading.message('Getting Recent Releases from Discogs');
+    this.renderer.loading.message("Getting Recent Releases from Discogs");
     return new Promise((resolve, reject) => {
       this.webtask
         .getRecent()
         .then(data => {
-          this.renderer.loading.message('Writing Releases to Database');
+          this.renderer.loading.message("Writing Releases to Database");
           this.firestore
             .updateCollection(data, this._.user.username)
             .then(data => {
-              this.renderer.loading.message('Wrote Releases to Database');
+              this.renderer.loading.message("Wrote Releases to Database");
               this._clearStore();
               resolve();
             })
@@ -215,7 +215,7 @@ export default class Store {
       let ids = this._.missingReleaseIds,
         chunkedIds = [],
         // If we can, we do it all at once, otherwise we throttle to 10 per 15 seconds
-        size = ids.length <= 60 ? 60 : BATCH_SIZE;
+        size = ids.length <= 30 ? 30 : BATCH_SIZE;
       while (ids.length > 0) chunkedIds.push(ids.splice(0, size));
       let chunks = chunkedIds.length,
         time = this._time(chunks * BATCH_SECONDS);
@@ -257,10 +257,10 @@ export default class Store {
     });
   }
 
-  // Recursively loading 60 releases/minute from Webtask then writing to Firestore.
+  // Recursively loading 30 releases/minute from Webtask then writing to Firestore.
   loadReleases(chunkedIds, chunks, index) {
     let count = chunkedIds[index].length,
-      ids = chunkedIds[index].join(',');
+      ids = chunkedIds[index].join(",");
     return new Promise((resolve, reject) => {
       this.webtask
         .getReleases(ids)
@@ -323,7 +323,7 @@ export default class Store {
       distance: 100,
       maxPatternLength: 32,
       minMatchCharLength: 2,
-      keys: ['artistTitle']
+      keys: ["artistTitle"]
     });
     this.fuseCompanySearch = new Fuse(this.searchableCompanies, {
       shouldSort: true,
@@ -336,7 +336,7 @@ export default class Store {
       distance: 100,
       maxPatternLength: 32,
       minMatchCharLength: 2,
-      keys: ['name']
+      keys: ["name"]
     });
     this.randomRelease();
     this.detectMissingSpotify();
@@ -348,7 +348,7 @@ export default class Store {
       i => !ids.includes(i.id)
     );
     if (missing.length > 0) {
-      console.info('Missing Spotify Data');
+      console.info("Missing Spotify Data");
       console.info(
         missing.map(i => {
           let { title, id } = this._.releases[i.id];
@@ -361,7 +361,7 @@ export default class Store {
   randomRelease() {
     let ids = Object.keys(this._.releases),
       id = ids[Math.floor(Math.random() * ids.length)];
-    this.renderer.results.itemType = 'release';
+    this.renderer.results.itemType = "release";
     this.renderer.currResultId = id;
     this.renderer.release.render(id);
   }
@@ -370,13 +370,13 @@ export default class Store {
     if (!this.fuseReleaseSearch) return null;
     if (!term) return null;
     let search =
-      type === 'release' ? this.fuseReleaseSearch : this.fuseCompanySearch;
+      type === "release" ? this.fuseReleaseSearch : this.fuseCompanySearch;
     return search.search(term);
   }
 
   _time(seconds) {
-    let minutes = Math.floor(seconds / 60);
-    seconds = seconds - minutes * 60;
+    let minutes = Math.floor(seconds / 30);
+    seconds = seconds - minutes * 30;
     minutes = minutes < 10 ? `0${minutes}` : minutes;
     seconds = seconds < 10 ? `0${seconds}` : seconds;
     return `${minutes}:${seconds}`;
@@ -402,16 +402,16 @@ export default class Store {
     response.year = release.year;
     response.artist = Object.values(release.artists)
       .map(a => a.name)
-      .join(', ');
-    response.artistTitle = response.artist + ': ' + response.title;
+      .join(", ");
+    response.artistTitle = response.artist + ": " + response.title;
     response.folder = this._.collectionFolders[collectionRelease.folderId].name;
     response.companies = Object.values(release.labels)
       .concat(Object.values(release.companies))
       .map(c => c.name)
-      .join(', ');
+      .join(", ");
     let formats = {};
     release.formats.forEach(format => (formats[format.name] = 1));
-    response.format = Object.keys(formats).join(', ');
+    response.format = Object.keys(formats).join(", ");
     return response;
   }
 
@@ -422,7 +422,7 @@ export default class Store {
       let release = this._.releases[collectionRelease.id];
       Object.values(release.artists).forEach(artist => {
         let name = artist.name;
-        if (name !== 'Various') {
+        if (name !== "Various") {
           this.categorized.artist[name] = this.categorized.artist[name] || [];
           this.categorized.artist[name].push(release.id);
         }

@@ -35,7 +35,7 @@ On first load or whenever you want to update your Collection, you will hit "Upda
     - If it does
       1. It reloads the app
     - If it doesn't
-      1. It calls the Webtask `discogs-releases` function, which returns Releases for arrays of `releaseIds`. 
+      1. It calls the Webtask `discogs-releases` function, which returns Releases for arrays of `releaseIds`.
         - This is throttled 60 per minute because of Discogs API limitations.
         - If you need less than 60 Releases it will load all in one request,
         - If you need more than 60 Releases it runs for 10 Releases every 15 seconds

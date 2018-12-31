@@ -536,7 +536,7 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
-var LOCAL_KEY = 'discogs-library-0.1',
+var LOCAL_KEY = "discogs-library-0.1",
     BATCH_SIZE = 10,
     BATCH_SECONDS = 15;
 
@@ -553,7 +553,7 @@ var Store = function () {
   }
 
   _createClass(Store, [{
-    key: 'searchSpotify',
+    key: "searchSpotify",
     value: function searchSpotify(release) {
       var _this = this;
 
@@ -569,7 +569,7 @@ var Store = function () {
     // One-off update
 
   }, {
-    key: 'updateSpotifyId',
+    key: "updateSpotifyId",
     value: function updateSpotifyId(releaseId, spotifyId) {
       var _this2 = this;
 
@@ -582,7 +582,7 @@ var Store = function () {
       });
     }
   }, {
-    key: 'searchSpotifyForRelease',
+    key: "searchSpotifyForRelease",
     value: function searchSpotifyForRelease(_ref) {
       var _this3 = this;
 
@@ -596,14 +596,14 @@ var Store = function () {
         return artist.name;
       });
       // Do the OR combination for artist if we can
-      var artist = artists[1] ? artists[0] + 'OR' + artists[1] : artists[0];
+      var artist = artists[1] ? artists[0] + "OR" + artists[1] : artists[0];
       return new Promise(function (resolve, reject) {
         // If we saved it, return it.
         if (_this3._.spotify[id]) {
           resolve(_this3._.spotify[id].id);
           return;
-        } else if (_this3._.spotify[id] === '') {
-          resolve('');
+        } else if (_this3._.spotify[id] === "") {
+          resolve("");
           return;
         }
 
@@ -613,7 +613,7 @@ var Store = function () {
             resolve(album.id);
           } else {
             // Try searching without ending parens
-            var title2 = title.replace(/ \([^\)]+\)$/, '');
+            var title2 = title.replace(/ \([^\)]+\)$/, "");
             _this3.webtask.searchSpotify(artist, title2).then(function (response) {
               var album = response.data.albums.items[0];
               if (album) {
@@ -625,7 +625,7 @@ var Store = function () {
                   if (album) {
                     resolve(album.id);
                   } else {
-                    resolve('');
+                    resolve("");
                   }
                 }).catch(reject);
               }
@@ -635,7 +635,7 @@ var Store = function () {
       });
     }
   }, {
-    key: 'loadAllDataFromLocalStorage',
+    key: "loadAllDataFromLocalStorage",
     value: function loadAllDataFromLocalStorage() {
       var localData = this._getStore();
       if (localData) {
@@ -646,13 +646,13 @@ var Store = function () {
       }
     }
   }, {
-    key: 'getAllDataFromFirebase',
+    key: "getAllDataFromFirebase",
     value: function getAllDataFromFirebase() {
       var _this4 = this;
 
       return new Promise(function (resolve, reject) {
         _this4.renderer.loading.enable();
-        _this4.renderer.loading.message('Getting Collection from Database');
+        _this4.renderer.loading.message("Getting Collection from Database");
         _this4.firestore.getAllData().then(function (data) {
           _this4.setData(data);
           _this4.renderer.loading.disable();
@@ -661,14 +661,14 @@ var Store = function () {
       });
     }
   }, {
-    key: 'loadAllDataFromJSON',
+    key: "loadAllDataFromJSON",
     value: function loadAllDataFromJSON() {
       var _this5 = this;
 
       return new Promise(function (resolve, reject) {
         _this5.renderer.loading.enable();
-        _this5.renderer.loading.message('Loading Data');
-        axios.get('data/' + LOCAL_KEY + '.json', {}).then(function (data) {
+        _this5.renderer.loading.message("Loading Data");
+        axios.get("data/" + LOCAL_KEY + ".json", {}).then(function (data) {
           _this5.setData(data.data);
           _this5.renderer.loading.disable();
           resolve();
@@ -676,17 +676,17 @@ var Store = function () {
       });
     }
   }, {
-    key: 'writeCollection',
+    key: "writeCollection",
     value: function writeCollection() {
       var _this6 = this;
 
       this.renderer.loading.enable();
-      this.renderer.loading.message('Getting Collection from Discogs');
+      this.renderer.loading.message("Getting Collection from Discogs");
       return new Promise(function (resolve, reject) {
         _this6.webtask.getCollection().then(function (data) {
-          _this6.renderer.loading.message('Writing Collection to Database');
+          _this6.renderer.loading.message("Writing Collection to Database");
           _this6.firestore.writeCollection(data).then(function (data) {
-            _this6.renderer.loading.message('Wrote Collection to Database');
+            _this6.renderer.loading.message("Wrote Collection to Database");
             _this6._clearStore();
             resolve();
           }).catch(reject);
@@ -694,17 +694,17 @@ var Store = function () {
       });
     }
   }, {
-    key: 'updateCollection',
+    key: "updateCollection",
     value: function updateCollection() {
       var _this7 = this;
 
       this.renderer.loading.enable();
-      this.renderer.loading.message('Getting Recent Releases from Discogs');
+      this.renderer.loading.message("Getting Recent Releases from Discogs");
       return new Promise(function (resolve, reject) {
         _this7.webtask.getRecent().then(function (data) {
-          _this7.renderer.loading.message('Writing Releases to Database');
+          _this7.renderer.loading.message("Writing Releases to Database");
           _this7.firestore.updateCollection(data, _this7._.user.username).then(function (data) {
-            _this7.renderer.loading.message('Wrote Releases to Database');
+            _this7.renderer.loading.message("Wrote Releases to Database");
             _this7._clearStore();
             resolve();
           }).catch(reject);
@@ -712,7 +712,7 @@ var Store = function () {
       });
     }
   }, {
-    key: 'setData',
+    key: "setData",
     value: function setData(_ref2) {
       var _this8 = this;
 
@@ -735,7 +735,7 @@ var Store = function () {
       this._setStore({ user: user, collection: collection, releases: releases, spotify: spotify });
     }
   }, {
-    key: 'saveState',
+    key: "saveState",
     value: function saveState() {
       var _ref3 = this._,
           user = _ref3.user,
@@ -751,27 +751,27 @@ var Store = function () {
       this._setStore({ user: user, collection: collection, releases: releases, spotify: spotify });
     }
   }, {
-    key: 'loadMissingReleases',
+    key: "loadMissingReleases",
     value: function loadMissingReleases() {
       var _this9 = this;
 
       // "Loading" state of app with progress notifications
       this.renderer.loading.enable();
-      this.renderer.loading.message('Loading ' + this._.missingReleaseIds.length + ' Releases from Discogs.');
+      this.renderer.loading.message("Loading " + this._.missingReleaseIds.length + " Releases from Discogs.");
       return new Promise(function (resolve, reject) {
         var ids = _this9._.missingReleaseIds,
             chunkedIds = [],
 
         // If we can, we do it all at once, otherwise we throttle to 10 per 15 seconds
-        size = ids.length <= 60 ? 60 : BATCH_SIZE;
+        size = ids.length <= 30 ? 30 : BATCH_SIZE;
         while (ids.length > 0) {
           chunkedIds.push(ids.splice(0, size));
         }var chunks = chunkedIds.length,
             time = _this9._time(chunks * BATCH_SECONDS);
-        _this9.renderer.loading.message('This will take around ' + time + ' in ' + chunks + ' pass(es).');
+        _this9.renderer.loading.message("This will take around " + time + " in " + chunks + " pass(es).");
         // Get Release(s) from Webtask and progressively Write Release(s) to Firestore
         _this9.loadReleases(chunkedIds, chunks, 0).then(function () {
-          _this9.renderer.loading.message('Completed ' + chunks + ' pass(es)');
+          _this9.renderer.loading.message("Completed " + chunks + " pass(es)");
           // Delete localStorage
           _this9._clearStore();
           resolve();
@@ -779,7 +779,7 @@ var Store = function () {
       });
     }
   }, {
-    key: 'updateRelease',
+    key: "updateRelease",
     value: function updateRelease(id) {
       var _this10 = this;
 
@@ -801,25 +801,25 @@ var Store = function () {
       });
     }
 
-    // Recursively loading 60 releases/minute from Webtask then writing to Firestore.
+    // Recursively loading 30 releases/minute from Webtask then writing to Firestore.
 
   }, {
-    key: 'loadReleases',
+    key: "loadReleases",
     value: function loadReleases(chunkedIds, chunks, index) {
       var _this11 = this;
 
       var count = chunkedIds[index].length,
-          ids = chunkedIds[index].join(',');
+          ids = chunkedIds[index].join(",");
       return new Promise(function (resolve, reject) {
         _this11.webtask.getReleases(ids).then(function (data) {
           index++;
           var time = _this11._time((chunks - index + 1) * BATCH_SECONDS);
-          _this11.renderer.loading.message('Got ' + index + '/' + chunks + ' batches of Releases from Discogs. ~' + time + ' remaining.');
+          _this11.renderer.loading.message("Got " + index + "/" + chunks + " batches of Releases from Discogs. ~" + time + " remaining.");
           // If we need to get more
           if (index < chunks) {
             // Write existing to Firebase (will load on window.reload later)
             _this11.firestore.writeReleases(data).then(function () {
-              _this11.renderer.loading.message('Wrote ' + count + ' Releases to Database.');
+              _this11.renderer.loading.message("Wrote " + count + " Releases to Database.");
             }).catch(reject);
             // Queue it again with the next batch
             setTimeout(function () {
@@ -829,7 +829,7 @@ var Store = function () {
             // We have what we need
             // Write existing to Firebase (will load on window.reload later)
             _this11.firestore.writeReleases(data).then(function () {
-              _this11.renderer.loading.message('Wrote ' + count + ' Releases to Database.');
+              _this11.renderer.loading.message("Wrote " + count + " Releases to Database.");
               // Resolve
               resolve(data);
             }).catch(reject);
@@ -838,7 +838,7 @@ var Store = function () {
       });
     }
   }, {
-    key: 'process',
+    key: "process",
     value: function process() {
       this.searchableReleases = Object.values(this._.collectionReleases).map(this._searchableRelease.bind(this));
       this._categorizeReleases(this._.collectionReleases);
@@ -856,7 +856,7 @@ var Store = function () {
         distance: 100,
         maxPatternLength: 32,
         minMatchCharLength: 2,
-        keys: ['artistTitle']
+        keys: ["artistTitle"]
       });
       this.fuseCompanySearch = new Fuse(this.searchableCompanies, {
         shouldSort: true,
@@ -869,13 +869,13 @@ var Store = function () {
         distance: 100,
         maxPatternLength: 32,
         minMatchCharLength: 2,
-        keys: ['name']
+        keys: ["name"]
       });
       this.randomRelease();
       this.detectMissingSpotify();
     }
   }, {
-    key: 'detectMissingSpotify',
+    key: "detectMissingSpotify",
     value: function detectMissingSpotify() {
       var _this12 = this;
 
@@ -884,7 +884,7 @@ var Store = function () {
         return !ids.includes(i.id);
       });
       if (missing.length > 0) {
-        console.info('Missing Spotify Data');
+        console.info("Missing Spotify Data");
         console.info(missing.map(function (i) {
           var _$releases$i$id = _this12._.releases[i.id],
               title = _$releases$i$id.title,
@@ -895,48 +895,48 @@ var Store = function () {
       }
     }
   }, {
-    key: 'randomRelease',
+    key: "randomRelease",
     value: function randomRelease() {
       var ids = Object.keys(this._.releases),
           id = ids[Math.floor(Math.random() * ids.length)];
-      this.renderer.results.itemType = 'release';
+      this.renderer.results.itemType = "release";
       this.renderer.currResultId = id;
       this.renderer.release.render(id);
     }
   }, {
-    key: 'search',
+    key: "search",
     value: function search(term, type) {
       if (!this.fuseReleaseSearch) return null;
       if (!term) return null;
-      var search = type === 'release' ? this.fuseReleaseSearch : this.fuseCompanySearch;
+      var search = type === "release" ? this.fuseReleaseSearch : this.fuseCompanySearch;
       return search.search(term);
     }
   }, {
-    key: '_time',
+    key: "_time",
     value: function _time(seconds) {
-      var minutes = Math.floor(seconds / 60);
-      seconds = seconds - minutes * 60;
-      minutes = minutes < 10 ? '0' + minutes : minutes;
-      seconds = seconds < 10 ? '0' + seconds : seconds;
-      return minutes + ':' + seconds;
+      var minutes = Math.floor(seconds / 30);
+      seconds = seconds - minutes * 30;
+      minutes = minutes < 10 ? "0" + minutes : minutes;
+      seconds = seconds < 10 ? "0" + seconds : seconds;
+      return minutes + ":" + seconds;
     }
   }, {
-    key: '_getStore',
+    key: "_getStore",
     value: function _getStore() {
       return localStorage.getItem(LOCAL_KEY);
     }
   }, {
-    key: '_setStore',
+    key: "_setStore",
     value: function _setStore(data) {
       localStorage.setItem(LOCAL_KEY, JSON.stringify(data));
     }
   }, {
-    key: '_clearStore',
+    key: "_clearStore",
     value: function _clearStore() {
       localStorage.removeItem(LOCAL_KEY);
     }
   }, {
-    key: '_searchableRelease',
+    key: "_searchableRelease",
     value: function _searchableRelease(collectionRelease) {
       var release = this._.releases[collectionRelease.id],
           response = {};
@@ -945,21 +945,21 @@ var Store = function () {
       response.year = release.year;
       response.artist = Object.values(release.artists).map(function (a) {
         return a.name;
-      }).join(', ');
-      response.artistTitle = response.artist + ': ' + response.title;
+      }).join(", ");
+      response.artistTitle = response.artist + ": " + response.title;
       response.folder = this._.collectionFolders[collectionRelease.folderId].name;
       response.companies = Object.values(release.labels).concat(Object.values(release.companies)).map(function (c) {
         return c.name;
-      }).join(', ');
+      }).join(", ");
       var formats = {};
       release.formats.forEach(function (format) {
         return formats[format.name] = 1;
       });
-      response.format = Object.keys(formats).join(', ');
+      response.format = Object.keys(formats).join(", ");
       return response;
     }
   }, {
-    key: '_categorizeReleases',
+    key: "_categorizeReleases",
     value: function _categorizeReleases(collectionReleases) {
       var _this13 = this;
 
@@ -969,13 +969,13 @@ var Store = function () {
         var release = _this13._.releases[collectionRelease.id];
         Object.values(release.artists).forEach(function (artist) {
           var name = artist.name;
-          if (name !== 'Various') {
+          if (name !== "Various") {
             _this13.categorized.artist[name] = _this13.categorized.artist[name] || [];
             _this13.categorized.artist[name].push(release.id);
           }
         });
         Object.values(release.labels).concat(Object.values(release.companies)).forEach(function (company) {
-          var key = company.type + '-' + company.id,
+          var key = company.type + "-" + company.id,
               existing = _this13.companies[company.id];
           if (existing) {
             if (!existing.types.includes(company.type)) existing.types.push(company.type);
